@@ -71,6 +71,29 @@ Pipeline je Produkt (`lib/render/mockup.ts`):
 Rate-Limit: 120 Anfragen pro IP und Stunde. Alle vier Produkte zusammen rendern
 lokal in rund 300 ms.
 
+## Design
+
+Die Oberflaeche uebernimmt den Konfigurator-Block der B2B-Landingpage — bis hin zu den
+Klassennamen (`b2b-konfig__*`), damit App und Theme-Section nicht auseinanderlaufen.
+
+Die Werte in `app/globals.css` sind **gemessen**, nicht geschaetzt: ausgelesen an
+`.color-scheme` und `:root` der laufenden Theme-Vorschau
+(`/pages/personalisierte-socken-mit-logo?view=b2b-2026`). Farben stehen dort als
+Kanaltripel (`28 28 28`) und werden als `rgb(var(--x))` benutzt — wer sie als
+`var(--x, #fff)` schreibt, bekommt Transparenz. Wer etwas aendert, misst vorher neu.
+
+Die Schrift ist basic-sans aus dem Typekit-Kit `wdu6knh`, dasselbe Kit, das der Shop
+laedt (`app/layout.tsx`). **Adobe gibt Kits nur auf freigeschalteten Domains aus:** die
+Vercel-Adresse muss in Adobe Fonts ergaenzt werden, sonst greift der Fallback-Stack.
+
+Zwei bewusste Abweichungen vom Shop-Block:
+
+- Die Kacheln sind quadratisch statt 4:3. Im Shop stehen dort beschnittene Fotos, hier
+  freigestellte Hochformate — bei 4:3 mit `contain` schrumpft der Socken auf gut die
+  halbe Kachelbreite.
+- Die Kacheln verlinken (noch) nicht auf die Produktseiten. Im eingebetteten Zustand
+  muesste der Link aus dem iframe ausbrechen; das gehoert zu Phase 5.
+
 ## Produktkatalog
 
 `lib/products.ts`. Preise stammen aus `OCCULTO_PREISLISTE_Socken.pdf` (Kundenpreise

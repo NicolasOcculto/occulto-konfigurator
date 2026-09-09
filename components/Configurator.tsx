@@ -34,8 +34,9 @@ type RenderResponse = {
 
 function formatPrice(value: number | null): string {
   // null heisst: Preis steht noch nicht fest, wird im Angebot gerechnet.
-  if (value === null) return 'auf Anfrage';
-  return value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+  if (value === null) return 'Preis auf Anfrage';
+  const betrag = value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+  return `ab ${betrag}`;
 }
 
 export default function Configurator({ products }: { products: ProductCard[] }) {
@@ -143,11 +144,11 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
         if (found[0]) setTint(found[0]);
         say(
           data.strategy === 'extracted'
-            ? 'Logo von der Website uebernommen.'
-            : `Logo ueber ${data.strategy} gefunden.`,
+            ? 'Logo von deiner Website übernommen.'
+            : `Logo über ${data.strategy} gefunden.`,
         );
       } else {
-        say('Kein Logo gefunden. Zieh es einfach hierher.', true);
+        say('Kein Logo gefunden. Zieh es einfach in das Feld daneben.', true);
       }
     } catch (err) {
       say(err instanceof Error ? err.message : 'Die Domain liess sich nicht auswerten.', true);
@@ -166,7 +167,7 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
         return;
       }
       if (file.size > MAX_LOGO_BYTES) {
-        say('Die Datei ist zu gross (maximal 4 MB).', true);
+        say('Die Datei ist zu groß (maximal 4 MB).', true);
         return;
       }
       const reader = new FileReader();
@@ -194,170 +195,180 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
   }, [acceptFile]);
 
   const hasResult = logo !== null || company !== '';
+  const lieferzeit = products[0]?.leadTime ?? '';
 
   return (
-    <div className="wrap">
-      <div className="panel">
-        <h1>Sieh dein Logo auf echten Socken.</h1>
-        <p className="lede">
-          Firmendomain eingeben — wir holen Logo und Markenfarben von der Website und setzen sie auf
-          unsere Produkte.
-        </p>
+    <section className="b2b-konfig" id="b2b-konfigurator">
+      <div className="b2b-konfig__raster">
+        <div className="b2b-konfig__links">
+          <h1 className="b2b-konfig__titel">Dein Logo &ndash; Unser Design</h1>
+          <p className="b2b-konfig__text">
+            Gib für Inspiration die URL deiner Website ein. Änderungen passen wir gern unverbindlich
+            und kostenlos an.
+          </p>
 
-        <form className="field" onSubmit={lookup}>
-          <input
-            type="text"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="firma.de"
-            autoComplete="off"
-            spellCheck={false}
-            aria-label="Firmendomain"
-          />
-          <button type="submit" className="go" disabled={looking || domain.trim() === ''}>
-            {looking ? 'Suche …' : 'Logo holen'}
-          </button>
-        </form>
-
-        <p className={isError ? 'status err' : 'status'} role="status">
-          {status}
-        </p>
-
-        <div className="divider">oder</div>
-
-        <button
-          type="button"
-          className={`drop${dragging ? ' over' : ''}${logo ? ' loaded' : ''}`}
-          onClick={() => fileInput.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDragging(false);
-            acceptFile(e.dataTransfer.files[0]);
-          }}
-        >
-          <svg
-            width="26"
-            height="26"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <path d="M17 8l-5-5-5 5" />
-            <path d="M12 3v13" />
-          </svg>
-          <span className="drop-title">
-            {logo ? (logoLabel ?? 'Logo geladen') : 'Logo hierher ziehen'}
-          </span>
-          <span className="drop-hint">
-            {logo
-              ? 'Anderes Logo ablegen, um es zu ersetzen'
-              : 'oder klicken zum Auswaehlen · PNG mit transparentem Hintergrund passt am besten'}
-          </span>
-        </button>
-        <input
-          ref={fileInput}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={(e) => acceptFile(e.target.files?.[0])}
-        />
-
-        {logo && (
-          <div className="found">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logo} alt="Erkanntes Logo" />
-            <div>
-              <strong>{company || 'Logo bereit'}</strong>
-              <span>{logoLabel}</span>
-            </div>
-          </div>
-        )}
-
-        {hasResult && (
-          <div className="colors">
-            <h2>Produktfarbe</h2>
-            <div className="sw">
-              {palette.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  title={color}
-                  aria-label={`Produktfarbe ${color}`}
-                  aria-pressed={color.toUpperCase() === tint.toUpperCase()}
-                  style={{ background: color }}
-                  onClick={() => setTint(color)}
-                />
-              ))}
+          <div className="b2b-konfig__eingabe">
+            <form className="b2b-konfig__feld" onSubmit={lookup}>
               <input
-                type="color"
-                value={tint}
-                title="Eigene Farbe"
-                aria-label="Eigene Farbe"
-                onChange={(e) => setTint(e.target.value)}
+                type="text"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                placeholder="Deine URL"
+                autoComplete="off"
+                spellCheck={false}
+                aria-label="Adresse deiner Website"
               />
-            </div>
-            <p className="brandhint">
-              Dunkle Ware wird nicht eingefaerbt — dort steht das Logo weiss auf Schwarz.
-            </p>
+              <button
+                type="submit"
+                className="b2b-konfig__pfeil"
+                disabled={looking || domain.trim() === ''}
+                aria-label="Logo von der Website holen"
+              >
+                {looking ? (
+                  <span className="b2b-konfig__spinner" aria-hidden="true" />
+                ) : (
+                  <span aria-hidden="true">&rsaquo;</span>
+                )}
+              </button>
+            </form>
+
+            <button
+              type="button"
+              className={`b2b-konfig__drop${dragging ? ' ist-ueber' : ''}${logo ? ' hat-logo' : ''}`}
+              title="PNG mit transparentem Hintergrund passt am besten"
+              onClick={() => fileInput.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragging(true);
+              }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                acceptFile(e.dataTransfer.files[0]);
+              }}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <path d="M17 8l-5-5-5 5" />
+                <path d="M12 3v13" />
+              </svg>
+              {/* Der Dateiname steht schon in der Trefferzeile darunter — hier
+                  waere er nur doppelt und wuerde das Feld sprengen. */}
+              <span>{logo ? 'Logo ersetzen' : 'Drag & Drop'}</span>
+            </button>
           </div>
-        )}
 
-        <button
-          type="button"
-          className="cta"
-          disabled={!hasResult}
-          onClick={() => say('Nur Beispiel — das Anfrageformular kommt als Naechstes.')}
-        >
-          Anfrage senden
-        </button>
-        <p className="fineprint">Unverbindlich · Designvorschlag kostenlos</p>
-      </div>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => acceptFile(e.target.files?.[0])}
+          />
 
-      <div className={rendering ? 'grid busy' : 'grid'}>
-        {products.map((product) => (
-          <article className="tile" key={product.key}>
-            <figure>
-              {/* Produktfotos und Mockups kommen fertig skaliert; der Optimizer wuerde
-                  data:-URIs ohnehin nicht anfassen. */}
+          <p
+            className={isError ? 'b2b-konfig__hinweis ist-fehler' : 'b2b-konfig__hinweis'}
+            role="status"
+          >
+            {status}
+          </p>
+
+          {logo && (
+            <div className="b2b-konfig__treffer">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={previews[product.key] ?? product.image}
-                alt={
-                  previews[product.key]
-                    ? `${product.label} mit deinem Logo`
-                    : `${product.label}, Musterbild`
-                }
-                width={product.w}
-                height={product.h}
-              />
-            </figure>
-            <div className="meta">
-              <h3>{product.label}</h3>
-              <p className="material">{product.material}</p>
-              <dl>
-                <dt>Preis ab</dt>
-                <dd className="price">{formatPrice(product.priceFrom)}</dd>
-                <dt>Mindestmenge</dt>
-                <dd>
-                  {product.minQuantity} {product.unit} pro Größe
-                </dd>
-                <dt>Lieferzeit</dt>
-                <dd>{product.leadTime}</dd>
-              </dl>
+              <img src={logo} alt="Erkanntes Logo" />
+              <div>
+                <strong>{company || 'Logo bereit'}</strong>
+                <span>{logoLabel}</span>
+              </div>
             </div>
-          </article>
-        ))}
+          )}
+
+          {hasResult && (
+            <div className="b2b-konfig__farben">
+              <h2 className="b2b-konfig__farbtitel">Produktfarbe</h2>
+              <div className="b2b-konfig__tupfer">
+                {palette.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    title={color}
+                    aria-label={`Produktfarbe ${color}`}
+                    aria-pressed={color.toUpperCase() === tint.toUpperCase()}
+                    style={{ background: color }}
+                    onClick={() => setTint(color)}
+                  />
+                ))}
+                <input
+                  type="color"
+                  value={tint}
+                  title="Eigene Farbe"
+                  aria-label="Eigene Farbe"
+                  onChange={(e) => setTint(e.target.value)}
+                />
+              </div>
+              <p className="b2b-konfig__farbnote">
+                Dunkle Ware wird nicht eingefärbt — dort steht dein Logo weiß auf Schwarz.
+              </p>
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="b2b-konfig__cta"
+            disabled={!hasResult}
+            onClick={() => say('Nur Beispiel — das Anfrageformular kommt als Nächstes.')}
+          >
+            Jetzt anfragen
+          </button>
+          <p className="b2b-konfig__klein">
+            Unverbindlich · Designvorschlag kostenlos{lieferzeit && ` · Lieferzeit ${lieferzeit}`}
+          </p>
+        </div>
+
+        <div
+          className={rendering ? 'b2b-konfig__kacheln ist-beschaeftigt' : 'b2b-konfig__kacheln'}
+        >
+          {products.map((product) => (
+            <figure className="b2b-konfig__kachel" key={product.key}>
+              <div className="b2b-konfig__bild">
+                {/* Produktfotos und Mockups kommen fertig skaliert; der Optimizer wuerde
+                    data:-URIs ohnehin nicht anfassen. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previews[product.key] ?? product.image}
+                  alt={
+                    previews[product.key]
+                      ? `${product.label} mit deinem Logo`
+                      : `${product.label}, Musterbild`
+                  }
+                  width={product.w}
+                  height={product.h}
+                />
+              </div>
+              <figcaption>
+                <p className="b2b-konfig__bildtitel">{product.label}</p>
+                <p className="b2b-konfig__bildtext">{product.material}</p>
+                <p className="b2b-konfig__bildpreis">
+                  {formatPrice(product.priceFrom)} · ab {product.minQuantity} {product.unit} pro
+                  Größe
+                </p>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

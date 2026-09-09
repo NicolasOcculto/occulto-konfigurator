@@ -245,7 +245,7 @@ async function nameLayer(
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
   <g transform="translate(${box.cx.toFixed(2)} ${box.cy.toFixed(2)}) rotate(${n.a})">
     <text x="0" y="0" text-anchor="middle" dominant-baseline="central"
-      font-family="Instrument Sans, Helvetica, Arial, DejaVu Sans, sans-serif"
+      font-family="basic-sans, Helvetica, Arial, DejaVu Sans, sans-serif"
       font-weight="600" font-size="${size.toFixed(2)}"
       letter-spacing="${(size * tracking).toFixed(2)}"
       fill="${fill}">${escapeXml(text)}</text>
