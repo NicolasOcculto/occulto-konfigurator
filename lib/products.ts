@@ -39,9 +39,9 @@ const LIEFERZEIT = '6–8 Wochen';
 
 export const PRODUCTS: Product[] = [
   {
-    key: 'kniestrumpf',
-    label: 'Kniestrumpf',
-    file: 'kniestrumpf.webp',
+    key: 'skisocke',
+    label: 'Skisocke',
+    file: 'skisocke.webp',
     w: 675,
     h: 900,
     dark: false,
@@ -60,7 +60,7 @@ export const PRODUCTS: Product[] = [
     w: 675,
     h: 900,
     dark: false,
-    logo: { x: 0.56, y: 0.42, s: 0.17 },
+    logo: { x: 0.6, y: 0.42, s: 0.17 },
     name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
     priceFrom: null,
     minQuantity: 100,
@@ -75,7 +75,7 @@ export const PRODUCTS: Product[] = [
     w: 675,
     h: 900,
     dark: false,
-    logo: { x: 0.56, y: 0.27, s: 0.19 },
+    logo: { x: 0.6, y: 0.27, s: 0.19 },
     name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
     priceFrom: 2.1,
     minQuantity: 100,
