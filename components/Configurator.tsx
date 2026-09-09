@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { anbieten } from '@/lib/markenkanal';
 import type { ProductCard } from '@/lib/products';
 
 /** Standardpalette, solange die Website keine eigenen Markenfarben hergibt. */
@@ -135,6 +136,21 @@ export default function Configurator({
   }, [logo, tint, company, runRender]);
 
   useEffect(() => () => renderAbort.current?.abort(), []);
+
+  // Was hier erkannt wurde, soll das Anfrageformular weiter unten nicht noch
+  // einmal abfragen. Es steht in einem eigenen iframe und meldet sich, sobald
+  // es geladen ist; die Werte liest der Kanal erst in diesem Moment aus.
+  const standRef = useRef({ company, logo, aktiv });
+  standRef.current = { company, logo, aktiv };
+  useEffect(
+    () =>
+      anbieten(() => {
+        const { company: firma, logo: bild, aktiv: produkt } = standRef.current;
+        if (!firma && !bild) return null;
+        return { firma, logo: bild, produkt: produkt || null };
+      }),
+    [],
+  );
 
   // Im iframe kennt die Landingpage die noetige Hoehe nicht. Statt einer festen
   // Zahl meldet die App sie bei jeder Aenderung - sonst scrollt der Rahmen intern.

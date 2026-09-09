@@ -125,6 +125,50 @@ Der Sprung laeuft ueber `location.hash`, nicht ueber `scrollIntoView` mit
 `behavior: 'smooth'`: das Theme setzt `body { overflow: hidden }`, sanftes Scrollen
 bleibt dort wirkungslos — nachgemessen landete es bei 0 statt bei 2230.
 
+## Anfrageformular
+
+`/anfrage`, drei Schritte: Produkt (mit „Weiß ich noch nicht"), Design und Menge,
+Kontaktdaten. `?eingebettet=1` verhält sich wie beim Konfigurator.
+
+**Übernahme aus dem Konfigurator.** Beide hängen als eigene iframes in derselben
+Seite, sind also getrennte Dokumente ohne gemeinsamen React-Zustand — aber auf
+derselben Herkunft. `lib/markenkanal.ts` verbindet sie über einen
+`BroadcastChannel`.
+
+Nicht einfach senden, sondern fragen und antworten: Das Formular steht weiter
+unten und lädt später (`loading="lazy"`). Ein einmal gesendetes Ereignis wäre da
+längst verpufft. Also fragt das Formular beim Aufwachen nach, und der
+Konfigurator antwortet — falls er überhaupt etwas weiß. Weiß er nichts, kommt
+keine Antwort und das Formular bleibt leer.
+
+Übernommen werden Firma, Logo und das zuletzt angesehene Produkt, und nur in
+Felder, die noch leer sind. Kein `sessionStorage`: das Logo ist eine `data:`-URI
+von bis zu 4 MB und sprengt die Ablage.
+
+Browser partitionieren `BroadcastChannel` nach der Seite ganz oben. Zwei iframes
+derselben Landingpage teilen sich also den Kanal, ein separater Tab mit der App
+nicht — genau richtig.
+
+### `/api/anfrage`
+
+`POST` mit Produkt, Menge, Logo als `data:`-URI, Kontaktdaten. Serverseitig
+geprüft: Pflichtfelder, Mailformat, bekannter Produktschlüssel, erlaubte
+Stückzahl, Logotyp (PNG, JPG, SVG) und Größe bis 5 MB. Steuerzeichen fliegen aus
+allen Feldern, Nutzertext wird für die HTML-Mail maskiert.
+
+Versand über Resend, Logo als Anhang, Betreff mit Firmenname, `reply_to` auf die
+Adresse des Absenders. Rate-Limit: 10 Anfragen pro IP und Stunde.
+
+**Ohne `RESEND_API_KEY` antwortet die Route mit 503**, und das Formular zeigt die
+Mailadresse als Rückfallweg. Absichtlich: lieber ehrlich scheitern, als so zu
+tun, als sei die Anfrage unterwegs.
+
+### Erfolg
+
+Die App meldet `{typ:'occulto-anfrage', was:'gesendet'}`, und die **Seite**
+navigiert auf `/pages/b2b-anfrage-gesendet` — nicht der iframe. `b2b_anfrage_success`
+hängt am Seitenaufruf der Danke-Seite; navigiert nur der Rahmen, feuert nichts.
+
 ## Produktkatalog
 
 `lib/products.ts`. Preise stammen aus `OCCULTO_PREISLISTE_Socken.pdf` (Kundenpreise
