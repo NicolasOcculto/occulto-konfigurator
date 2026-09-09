@@ -264,28 +264,102 @@ async function nameLayer(
   }
 }
 
-/** Logo mittig auf die vorgesehene Stelle setzen, Seitenverhaeltnis bleibt erhalten. */
+/**
+ * Logo mittig auf die vorgesehene Stelle setzen, Seitenverhaeltnis bleibt erhalten.
+ *
+ * Mit `box` sitzt das Logo auf der eingewebten Marke: dann geben deren
+ * ausgemessene Masse Ort und Groesse vor statt der festen Katalogwerte.
+ */
 async function logoLayer(
   product: Product,
   w: number,
   h: number,
   logo: Buffer,
+  box: LabelBox | null,
 ): Promise<Raster | null> {
-  const targetWidth = Math.max(8, Math.round(product.logo.s * w));
+  const targetWidth = box
+    ? Math.max(8, Math.round(box.halfW * 2 * 0.92))
+    : Math.max(8, Math.round(product.logo.s * w));
+  // Nur auf dem Label ist die Hoehe begrenzt; frei auf der Ware darf das Logo
+  // seinem eigenen Seitenverhaeltnis folgen.
+  const targetHeight = box ? Math.max(6, Math.round(box.halfH * 2 * 0.9)) : undefined;
+
   try {
     const { data, info } = await sharp(logo, { limitInputPixels: 40_000_000, density: 384 })
-      .resize({ width: targetWidth, fit: 'inside', withoutEnlargement: false })
+      .resize({
+        width: targetWidth,
+        height: targetHeight,
+        fit: 'inside',
+        withoutEnlargement: false,
+      })
       .ensureAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
 
     const patch: Raster = { data, w: info.width, h: info.height };
+
+    // Viele Logos von Websites sind deckende Grafiken auf weissem Grund. Ohne
+    // Freistellung waere die Silhouette das ganze Rechteck - auf dunkler Ware
+    // entstand daraus ein weisser Kasten statt eines Logos.
+    floodFillBackground(patch);
+
+    const cx = box ? box.cx : product.logo.x * w;
+    const cy = box ? box.cy : product.logo.y * h;
     const layer = emptyRaster(w, h);
-    placeInto(layer, patch, product.logo.x * w - patch.w / 2, product.logo.y * h - patch.h / 2);
+    placeInto(layer, patch, cx - patch.w / 2, cy - patch.h / 2);
     return layer;
   } catch {
     return null;
   }
+}
+
+/**
+ * Mittlere Helligkeit der sichtbaren Logopixel, 0 bis 1.
+ *
+ * Ein Logo, das ohnehin fast weiss ist, verschwindet auf heller Ware. Dann ist
+ * Schwarz die einzige Wahl - eine weisse Silhouette waere unsichtbar.
+ */
+function logoHelligkeit(layer: Raster): number {
+  const { data } = layer;
+  let summe = 0;
+  let n = 0;
+  for (let o = 0; o < data.length; o += 4) {
+    const a = data[o + 3]!;
+    if (a < 128) continue;
+    summe += luminance({ r: data[o]!, g: data[o + 1]!, b: data[o + 2]! });
+    n++;
+  }
+  return n === 0 ? 0 : summe / n;
+}
+
+/**
+ * Weiche Maske fuer das Farbband am Bund.
+ *
+ * Echte Ware wird nicht durchgefaerbt: der Schaft bleibt weiss, farbig ist nur
+ * der gestrickte Bund. Ohne die weiche Kante stuende dort eine harte Treppe.
+ */
+function bandMask(
+  w: number,
+  h: number,
+  band: { from: number; to: number },
+  silhouette: Uint8Array,
+): Uint8Array {
+  const mask = new Uint8Array(w * h);
+  const from = band.from * h;
+  const to = band.to * h;
+  const feather = Math.max(1, (to - from) * 0.06);
+
+  for (let y = 0; y < h; y++) {
+    if (y < from || y > to) continue;
+    const rand = Math.min(y - from, to - y);
+    const v = Math.round(Math.min(1, rand / feather) * 255);
+    if (v <= 0) continue;
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      mask[i] = Math.min(v, silhouette[i]!);
+    }
+  }
+  return mask;
 }
 
 /**
@@ -323,12 +397,22 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
   const tint = parseHexColor(color);
   const tintIsWhite = tint.r > 250 && tint.g > 250 && tint.b > 250;
   if (!product.dark && !tintIsWhite) {
-    multiplyColor(base, tint);
+    if (product.band) {
+      // Nur der Bund wird farbig, der Rest der Socke bleibt wie er ist.
+      const streifen = cloneRaster(base);
+      multiplyColor(streifen, tint);
+      maskWith(streifen, bandMask(width, height, product.band, silhouette));
+      compositeOver(base, streifen);
+    } else {
+      multiplyColor(base, tint);
+    }
     applyAlpha(base, silhouette);
   }
 
   // Helle Flaeche heisst dunkles Logo, dunkle Flaeche heisst weisses Logo.
-  const lightGarment = product.dark ? false : luminance(tint) > 0.55;
+  // Mit Farbband bleibt die Flaeche unter dem Logo in der Grundfarbe der Ware,
+  // die Wunschfarbe sagt dort also nichts ueber die Helligkeit aus.
+  const lightGarment = product.dark ? false : product.band ? true : luminance(tint) > 0.55;
 
   // Die eingefaerbte Ware ist zugleich die Texturvorlage fuer Schritt 5.
   const texture = cloneRaster(base);
@@ -337,16 +421,27 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
   const artwork = emptyRaster(width, height);
   let hasArtwork = false;
 
+  // Auf der Webmarke ist nur fuer eines Platz: dann gewinnt das Logo.
+  const logoTakesLabel = Boolean(logo && product.logoOnLabel);
+
   if (logo) {
-    const placed = await logoLayer(product, width, height, logo);
+    const placed = await logoLayer(product, width, height, logo, logoTakesLabel ? printBox : null);
     if (placed) {
-      if (!lightGarment) tintSilhouette(placed, WHITE);
+      // Auf der Ware behaelt das Logo seine eigenen Farben. Umgefaerbt wird nur,
+      // wenn es sonst im Untergrund verschwaende:
+      //  - auf der hellen Webmarke immer dunkel, auch bei schwarzer Ware,
+      //  - auf dunkler Ware weiss,
+      //  - auf heller Ware schwarz, falls das Logo selbst fast weiss ist.
+      //    Weiss auf Weiss ergibt kein Bild.
+      if (logoTakesLabel) tintSilhouette(placed, LABEL_INK);
+      else if (!lightGarment) tintSilhouette(placed, WHITE);
+      else if (logoHelligkeit(placed) > 0.72) tintSilhouette(placed, LABEL_INK);
       compositeOver(artwork, placed);
       hasArtwork = true;
     }
   }
 
-  if (company) {
+  if (company && !logoTakesLabel) {
     // Das Muetzenlabel ist immer hell, dort steht der Name dunkel.
     const inkIsDark = product.dark ? true : lightGarment;
     const text = await nameLayer(

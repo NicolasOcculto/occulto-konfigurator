@@ -39,7 +39,21 @@ function formatPrice(value: number | null): string {
   return `ab ${betrag}`;
 }
 
-export default function Configurator({ products }: { products: ProductCard[] }) {
+/** Nachricht an die einbettende Seite. Kein Nutzerinhalt, nur Steuerdaten. */
+function melde(was: 'hoehe' | 'anfrage', hoehe?: number) {
+  if (typeof window === 'undefined' || window.parent === window) return;
+  // Zielorigin '*': gesendet wird ausschliesslich die Hoehe bzw. ein Klick-Signal.
+  // Die Gegenseite prueft ihrerseits den Absender, bevor sie reagiert.
+  window.parent.postMessage({ typ: 'occulto-konfigurator', was, hoehe }, '*');
+}
+
+export default function Configurator({
+  products,
+  eingebettet = false,
+}: {
+  products: ProductCard[];
+  eingebettet?: boolean;
+}) {
   const [domain, setDomain] = useState('');
   const [company, setCompany] = useState('');
   const [logo, setLogo] = useState<string | null>(null);
@@ -52,6 +66,15 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
   const [looking, setLooking] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [dragging, setDragging] = useState(false);
+
+  // Grosse Ansicht: die Tennissocke steht vorn, die uebrigen daneben zum Durchklicken.
+  const [aktiv, setAktiv] = useState(
+    () => products.find((p) => p.key === 'tennis')?.key ?? products[0]?.key ?? '',
+  );
+  const [lupe, setLupe] = useState(false);
+  // Zoompunkt in Prozent der Buehne. transform-origin rechnet auf die Randbox,
+  // deshalb stimmt der Punkt auch bei object-fit: contain.
+  const [lupenPunkt, setLupenPunkt] = useState({ x: 50, y: 50 });
 
   const fileInput = useRef<HTMLInputElement>(null);
   const renderAbort = useRef<AbortController | null>(null);
@@ -113,6 +136,18 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
 
   useEffect(() => () => renderAbort.current?.abort(), []);
 
+  // Im iframe kennt die Landingpage die noetige Hoehe nicht. Statt einer festen
+  // Zahl meldet die App sie bei jeder Aenderung - sonst scrollt der Rahmen intern.
+  useEffect(() => {
+    if (!eingebettet) return;
+    const ziel = document.documentElement;
+    const senden = () => melde('hoehe', Math.ceil(ziel.getBoundingClientRect().height));
+    senden();
+    const beobachter = new ResizeObserver(senden);
+    beobachter.observe(ziel);
+    return () => beobachter.disconnect();
+  }, [eingebettet]);
+
   /* ---------- Markenerkennung ---------- */
 
   async function lookup(event: React.FormEvent) {
@@ -141,7 +176,8 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
       if (data.logo) {
         setLogo(data.logo.dataUri);
         setLogoLabel(`${data.logo.width} × ${data.logo.height} px · ${data.logo.source}`);
-        if (found[0]) setTint(found[0]);
+        // Die Markenfarben stehen in der Palette bereit, ausgewaehlt wird aber
+        // nichts: Weiss ist die Standardfarbe und bleibt es, bis jemand klickt.
         say(
           data.strategy === 'extracted'
             ? 'Logo von deiner Website übernommen.'
@@ -196,12 +232,28 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
 
   const hasResult = logo !== null || company !== '';
   const lieferzeit = products[0]?.leadTime ?? '';
+  const gezeigt = products.find((p) => p.key === aktiv) ?? products[0];
+  const Ueberschrift = eingebettet ? 'h2' : 'h1';
+
+  /** Cursorposition in Prozent der Buehne. */
+  function punkt(event: React.MouseEvent<HTMLElement>) {
+    const r = event.currentTarget.getBoundingClientRect();
+    return {
+      x: Math.min(100, Math.max(0, ((event.clientX - r.left) / r.width) * 100)),
+      y: Math.min(100, Math.max(0, ((event.clientY - r.top) / r.height) * 100)),
+    };
+  }
 
   return (
-    <section className="b2b-konfig" id="b2b-konfigurator">
+    <section
+      className={eingebettet ? 'b2b-konfig ist-eingebettet' : 'b2b-konfig'}
+      id="b2b-konfigurator"
+    >
       <div className="b2b-konfig__raster">
         <div className="b2b-konfig__links">
-          <h1 className="b2b-konfig__titel">Dein Logo &ndash; Unser Design</h1>
+          {/* Eingebettet ist die Seite schon mit einer h1 versorgt, hier gehoert
+              dann eine h2 hin. */}
+          <Ueberschrift className="b2b-konfig__titel">Dein Logo &ndash; Unser Design</Ueberschrift>
           <p className="b2b-konfig__text">
             Gib für Inspiration die URL deiner Website ein. Änderungen passen wir gern unverbindlich
             und kostenlos an.
@@ -319,7 +371,8 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
                 />
               </div>
               <p className="b2b-konfig__farbnote">
-                Dunkle Ware wird nicht eingefärbt — dort steht dein Logo weiß auf Schwarz.
+                Die Farbe färbt den Bund, nicht die ganze Socke. Dunkle Ware bleibt dunkel —
+                dort sitzt dein Logo im eingewebten Label.
               </p>
             </div>
           )}
@@ -328,7 +381,12 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
             type="button"
             className="b2b-konfig__cta"
             disabled={!hasResult}
-            onClick={() => say('Nur Beispiel — das Anfrageformular kommt als Nächstes.')}
+            onClick={() => {
+              // Eingebettet springt die Landingpage zum Anfrageblock; allein
+              // stehend gibt es dort noch nichts, also nur ein Hinweis.
+              if (eingebettet) melde('anfrage');
+              else say('Nur Beispiel — das Anfrageformular kommt als Nächstes.');
+            }}
           >
             Jetzt anfragen
           </button>
@@ -337,36 +395,101 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
           </p>
         </div>
 
-        <div
-          className={rendering ? 'b2b-konfig__kacheln ist-beschaeftigt' : 'b2b-konfig__kacheln'}
-        >
-          {products.map((product) => (
-            <figure className="b2b-konfig__kachel" key={product.key}>
-              <div className="b2b-konfig__bild">
+        <div className="b2b-konfig__ansicht">
+          <div
+            className={
+              rendering ? 'b2b-konfig__buehne ist-beschaeftigt' : 'b2b-konfig__buehne'
+            }
+          >
+            {gezeigt && (
+              <button
+                type="button"
+                className={lupe ? 'b2b-konfig__glas ist-gezoomt' : 'b2b-konfig__glas'}
+                aria-label={
+                  lupe ? `${gezeigt.label} wieder verkleinern` : `${gezeigt.label} vergrößern`
+                }
+                onClick={(e) => {
+                  setLupenPunkt(punkt(e));
+                  setLupe((an) => !an);
+                }}
+                onMouseMove={(e) => {
+                  if (lupe) setLupenPunkt(punkt(e));
+                }}
+                onMouseLeave={() => setLupe(false)}
+              >
                 {/* Produktfotos und Mockups kommen fertig skaliert; der Optimizer wuerde
                     data:-URIs ohnehin nicht anfassen. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={previews[product.key] ?? product.image}
+                  src={previews[gezeigt.key] ?? gezeigt.image}
                   alt={
-                    previews[product.key]
-                      ? `${product.label} mit deinem Logo`
-                      : `${product.label}, Musterbild`
+                    previews[gezeigt.key]
+                      ? `${gezeigt.label} mit deinem Logo`
+                      : `${gezeigt.label}, Musterbild`
                   }
+                  width={gezeigt.w}
+                  height={gezeigt.h}
+                  style={{
+                    transform: lupe ? 'scale(2.6)' : 'none',
+                    transformOrigin: `${lupenPunkt.x}% ${lupenPunkt.y}%`,
+                  }}
+                />
+                <span className="b2b-konfig__lupe" aria-hidden="true">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20l-3.5-3.5" />
+                    <path d={lupe ? 'M8 11h6' : 'M8 11h6M11 8v6'} />
+                  </svg>
+                </span>
+              </button>
+            )}
+          </div>
+
+          <div className="b2b-konfig__wahl" role="group" aria-label="Produkt auswählen">
+            {products.map((product) => (
+              <button
+                key={product.key}
+                type="button"
+                className={
+                  product.key === aktiv
+                    ? 'b2b-konfig__wahlknopf ist-aktiv'
+                    : 'b2b-konfig__wahlknopf'
+                }
+                aria-pressed={product.key === aktiv}
+                onClick={() => {
+                  setAktiv(product.key);
+                  setLupe(false);
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previews[product.key] ?? product.image}
+                  alt=""
                   width={product.w}
                   height={product.h}
                 />
-              </div>
-              <figcaption>
-                <p className="b2b-konfig__bildtitel">{product.label}</p>
-                <p className="b2b-konfig__bildtext">{product.material}</p>
-                <p className="b2b-konfig__bildpreis">
-                  {formatPrice(product.priceFrom)} · ab {product.minQuantity} {product.unit} pro
-                  Größe
-                </p>
-              </figcaption>
-            </figure>
-          ))}
+                <span>{product.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {gezeigt && (
+            <div className="b2b-konfig__untertitel">
+              <p className="b2b-konfig__bildtitel">{gezeigt.label}</p>
+              <p className="b2b-konfig__bildtext">{gezeigt.material}</p>
+              <p className="b2b-konfig__bildpreis">
+                {formatPrice(gezeigt.priceFrom)} · ab {gezeigt.minQuantity} {gezeigt.unit} pro Größe
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </section>

@@ -19,6 +19,10 @@
      Stack zurueck, den das Theme als Fallback fuehrt. */
   --font-stack: 'basic-sans', Helvetica, Arial, sans-serif;
 
+  /* Hintergrund der Produktansicht. Weisse Socken auf reinem Weiss haben
+     keine Kante mehr - dieser Ton ist der Studiountergrund dahinter. */
+  --buehne: 243 242 240;
+
   --danger: 154 43 33;
 }
 
@@ -51,6 +55,15 @@ input {
   margin: 0 auto;
   padding: 4rem 3rem;
 }
+
+/* Im iframe stellt die Landingpage Rahmen und Ueberschrift; die App darf
+   weder Aussenabstand noch Breitenbegrenzung doppelt mitbringen. */
+.b2b-konfig.ist-eingebettet {
+  max-width: none;
+  padding: 0;
+}
+
+
 
 .b2b-konfig__raster {
   display: grid;
@@ -342,68 +355,169 @@ input {
   opacity: 0.55;
 }
 
-/* --- Produktkacheln --- */
+/* --- Produktansicht: gross in der Mitte, Auswahl daneben --- */
 
-.b2b-konfig__kacheln {
+.b2b-konfig__ansicht {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  grid-template-rows: auto auto;
+  gap: 14px;
 }
 
-.b2b-konfig__kacheln.ist-beschaeftigt {
+.b2b-konfig__buehne {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.b2b-konfig__buehne.ist-beschaeftigt {
   opacity: 0.45;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .b2b-konfig__kacheln {
+  .b2b-konfig__buehne,
+  .b2b-konfig__wahlknopf img {
     transition: opacity 0.25s;
   }
 }
 
-.b2b-konfig__kachel {
-  margin: 0;
-}
-
-/* Im Shop sind die Kacheln 4:3, weil dort Fotos beschnitten werden. Hier
-   stehen freigestellte Hochformate drin: quadratisch bleibt das Raster ruhig,
-   ohne dass der Socken auf ein Drittel der Breite zusammenschrumpft. */
-.b2b-konfig__bild {
+/* Die Buehne ist zugleich der Schalter fuer die Lupe. */
+.b2b-konfig__glas {
   position: relative;
   display: block;
-  margin: 0;
+  width: 100%;
   aspect-ratio: 1 / 1;
+  padding: 0;
   overflow: hidden;
-  border-radius: 6px;
   border: 1px solid rgb(var(--border-color));
-  background: rgb(var(--background));
+  border-radius: 6px;
+  background: rgb(var(--buehne));
+  cursor: zoom-in;
 }
 
-/* Die Mockups sind freigestellte Hochformate — anders als die Fotos im Shop
-   duerfen sie nicht beschnitten werden, sonst fehlt der Bund. */
-.b2b-konfig__bild img {
+.b2b-konfig__glas.ist-gezoomt {
+  cursor: zoom-out;
+}
+
+.b2b-konfig__glas:focus-visible {
+  outline: 2px solid rgb(var(--button-background));
+  outline-offset: 2px;
+}
+
+.b2b-konfig__glas img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
 
+/* Vergroessern ohne Sprung: transform-origin folgt dem Zeiger, der Punkt
+   unter dem Cursor bleibt also stehen. Bei Klick funktioniert das auch ohne
+   Maus - sonst gaebe es auf dem Telefon gar keine Lupe. */
+@media (prefers-reduced-motion: no-preference) {
+  .b2b-konfig__glas img {
+    transition: transform 0.18s ease-out;
+  }
+}
+
+.b2b-konfig__lupe {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgb(var(--button-background));
+  color: rgb(var(--button-text-color));
+  pointer-events: none;
+}
+
+.b2b-konfig__wahl {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.b2b-konfig__wahlknopf {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+.b2b-konfig__wahlknopf img {
+  width: 100%;
+  /* Das height-Attribut am img ist ein Praesentationshinweis und setzt eine
+     feste Hoehe - ohne height:auto bliebe aspect-ratio wirkungslos. */
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  display: block;
+  border: 1px solid rgb(var(--border-color));
+  border-radius: 6px;
+  background: rgb(var(--buehne));
+  opacity: 0.6;
+}
+
+.b2b-konfig__wahlknopf:hover img {
+  opacity: 1;
+}
+
+.b2b-konfig__wahlknopf.ist-aktiv img {
+  opacity: 1;
+  border-color: rgb(var(--button-background));
+  box-shadow: 0 0 0 1px rgb(var(--button-background));
+}
+
+.b2b-konfig__wahlknopf span {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.2;
+  opacity: 0.65;
+}
+
+.b2b-konfig__wahlknopf.ist-aktiv span {
+  font-weight: 700;
+  opacity: 1;
+}
+
+.b2b-konfig__wahlknopf:focus-visible {
+  outline: 2px solid rgb(var(--button-background));
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.b2b-konfig__untertitel {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
 .b2b-konfig__bildtitel {
-  margin: 10px 0 0;
-  font-size: 15px;
+  margin: 0;
+  font-size: 17px;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .b2b-konfig__bildtext {
   margin: 3px 0 0;
-  font-size: 12px;
+  font-size: 13px;
   opacity: 0.55;
 }
 
 .b2b-konfig__bildpreis {
   margin: 4px 0 0;
-  font-size: 13px;
-  opacity: 0.7;
+  font-size: 14px;
+  opacity: 0.75;
 }
 
 @media screen and (max-width: 899px) {
@@ -430,7 +544,12 @@ input {
     width: 100%;
   }
 
-  .b2b-konfig__kacheln {
-    gap: 14px;
+  .b2b-konfig__ansicht {
+    grid-template-columns: minmax(0, 1fr) 76px;
+    gap: 10px;
+  }
+
+  .b2b-konfig__wahlknopf span {
+    font-size: 10px;
   }
 }

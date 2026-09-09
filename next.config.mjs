@@ -2,6 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  // Die runde Schaltflaeche unten links ist Nexts Entwicklungsanzeige. Im
+  // eingebetteten iframe schwebt sie mitten in der Landingpage - weg damit.
+  devIndicators: false,
+
   // Im Entwicklungsmodus blockiert Next seine eigenen Ressourcen, wenn die Seite
   // nicht ueber localhost geoeffnet wird. Ohne diesen Eintrag scheitert unter
   // http://127.0.0.1:3000 die Hydrierung: das Formular faellt dann auf natives

@@ -23,6 +23,22 @@ export type Product = {
   dark: boolean;
   /** Platzierung des Logos: Mittelpunkt (x,y) und Breite (s), jeweils relativ. */
   logo: { x: number; y: number; s: number };
+  /**
+   * Das Logo sitzt auf der eingewebten Marke statt frei auf der Ware. Dann gibt
+   * der ausgemessene Aufdruck Ort und Groesse vor, das Motiv steht dunkel auf
+   * hellem Grund, und der Firmenname entfaellt - beides passt nicht in ein Label.
+   * Gilt nur fuer ungedrehte Labels (name.a === 0).
+   */
+  logoOnLabel?: boolean;
+  /**
+   * Farbband am Bund, in Anteilen der Bildhoehe. Nur dort greift die Wunschfarbe.
+   * Ohne Angabe wird das ganze Produkt eingefaerbt.
+   *
+   * Werte gemessen am Silhouettenprofil der Produktfotos, nicht geschaetzt.
+   * Der Streifen setzt bewusst unterhalb der Bundkante an: ueber und unter ihm
+   * bleibt Ware in Grundfarbe stehen, sonst wirkt er wie eine abgeschnittene Kappe.
+   */
+  band?: { from: number; to: number };
   /** Eingewebter Schriftzug: Mittelpunkt, Drehung in Grad, Laenge und Strichstaerke. */
   name: { x: number; y: number; a: number; len: number; th: number };
   /** Ab-Preis pro Stueck. null bedeutet "auf Anfrage". */
@@ -45,7 +61,8 @@ export const PRODUCTS: Product[] = [
     w: 675,
     h: 900,
     dark: false,
-    logo: { x: 0.545, y: 0.22, s: 0.2 },
+    logo: { x: 0.545, y: 0.33, s: 0.17 },
+    band: { from: 0.115, to: 0.172 },
     name: { x: 0.499, y: 0.806, a: -47, len: 0.107, th: 0.021 },
     priceFrom: 1.69,
     minQuantity: 100,
@@ -60,7 +77,8 @@ export const PRODUCTS: Product[] = [
     w: 675,
     h: 900,
     dark: false,
-    logo: { x: 0.6, y: 0.42, s: 0.17 },
+    logo: { x: 0.6, y: 0.45, s: 0.17 },
+    band: { from: 0.337, to: 0.374 },
     name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
     priceFrom: null,
     minQuantity: 100,
@@ -75,7 +93,8 @@ export const PRODUCTS: Product[] = [
     w: 675,
     h: 900,
     dark: false,
-    logo: { x: 0.6, y: 0.27, s: 0.19 },
+    logo: { x: 0.61, y: 0.38, s: 0.19 },
+    band: { from: 0.170, to: 0.222 },
     name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
     priceFrom: 2.1,
     minQuantity: 100,
@@ -90,7 +109,8 @@ export const PRODUCTS: Product[] = [
     w: 692,
     h: 900,
     dark: true,
-    logo: { x: 0.5, y: 0.33, s: 0.26 },
+    logo: { x: 0.518, y: 0.689, s: 0.15 },
+    logoOnLabel: true,
     name: { x: 0.518, y: 0.689, a: 0, len: 0.13, th: 0.02 },
     priceFrom: 6.5,
     minQuantity: 100,
