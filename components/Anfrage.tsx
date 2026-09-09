@@ -12,7 +12,10 @@ const MENGEN = [100, 250, 500, 1000, 2000] as const;
 
 const UNENTSCHIEDEN = 'unklar';
 
-const SCHRITTNAMEN = ['Um welche Socke gehts?', 'Design & Stückzahl', 'Kontakt Daten'] as const;
+/** Kurz unter den Ziffern, damit man weiss wo man steht. */
+const SCHRITTMARKEN = ['Produkt', 'Design & Menge', 'Kontakt'] as const;
+/** Die eigentliche Frage des Schritts, als Ueberschrift darunter. */
+const SCHRITTFRAGEN = ['Um welche Socke gehts?', 'Design & Stückzahl', 'Kontakt Daten'] as const;
 
 type Schritt = 1 | 2 | 3;
 
@@ -200,7 +203,7 @@ export default function Anfrage({
         {/* Fortschritt: drei Kreise auf einer durchgehenden Linie. Die Linie
             liegt hinter den Kreisen, der zurueckgelegte Teil ist kraeftiger. */}
         <ol className="b2b-form__leiter" aria-label="Fortschritt">
-          {SCHRITTNAMEN.map((name, i) => {
+          {SCHRITTMARKEN.map((name, i) => {
             const nummer = (i + 1) as Schritt;
             const zustand =
               nummer < schritt ? ' ist-fertig' : nummer === schritt ? ' ist-aktiv' : '';
@@ -219,7 +222,7 @@ export default function Anfrage({
         </ol>
       </div>
 
-      <h3 className="b2b-form__frage">{SCHRITTNAMEN[schritt - 1]}</h3>
+      <h3 className="b2b-form__frage">{SCHRITTFRAGEN[schritt - 1]}</h3>
 
       {ausKonfigurator && (
         <p className="b2b-form__uebernommen">
