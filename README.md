@@ -86,13 +86,44 @@ Die Schrift ist basic-sans aus dem Typekit-Kit `wdu6knh`, dasselbe Kit, das der 
 laedt (`app/layout.tsx`). **Adobe gibt Kits nur auf freigeschalteten Domains aus:** die
 Vercel-Adresse muss in Adobe Fonts ergaenzt werden, sonst greift der Fallback-Stack.
 
-Zwei bewusste Abweichungen vom Shop-Block:
+Abweichungen vom Shop-Block:
 
-- Die Kacheln sind quadratisch statt 4:3. Im Shop stehen dort beschnittene Fotos, hier
-  freigestellte Hochformate — bei 4:3 mit `contain` schrumpft der Socken auf gut die
-  halbe Kachelbreite.
-- Die Kacheln verlinken (noch) nicht auf die Produktseiten. Im eingebetteten Zustand
-  muesste der Link aus dem iframe ausbrechen; das gehoert zu Phase 5.
+- Statt vier gleich grosser Kacheln steht ein grosses Bild in der Mitte, daneben alle
+  vier Vorlagen zum Durchklicken. Klick auf das grosse Bild vergroessert um den
+  Zeigerpunkt herum. Der Zoom laeuft ueber `transform` mit `transform-origin` auf der
+  Zeigerposition: so bleibt der Punkt unter dem Cursor stehen, und zwar auch bei
+  `object-fit: contain`, wo eine Rechnung mit `background-position` erst die Randbox
+  des Bildes ermitteln muesste. Ausgeloest per Klick, nicht nur per Hover — sonst
+  gaebe es auf dem Telefon keine Lupe.
+- Die Bildflaechen sind quadratisch und hellgrau hinterlegt. Weisse Ware auf reinem
+  Weiss hat keine Kante mehr.
+- Die Bilder verlinken (noch) nicht auf die Produktseiten. Im eingebetteten Zustand
+  muesste der Link aus dem iframe ausbrechen.
+
+## Einbettung in die Landingpage
+
+`?eingebettet=1` nimmt Aussenabstand und Breitenbegrenzung weg und macht aus der h1
+eine h2. Die Ueberschrift bringt die App mit, obwohl sie im iframe weder in der
+Gliederung der Seite noch bei Google auftaucht: nur so stehen Text und Produktbild im
+selben Raster und lassen sich auf einer Hoehe zentrieren.
+
+Zwei Nachrichten gehen per `postMessage` an die einbettende Seite, beide ohne
+Nutzerinhalt:
+
+| `was` | Zweck |
+| --- | --- |
+| `hoehe` | Aktuelle Dokumenthoehe, per ResizeObserver. Der Rahmen waechst mit, statt intern zu scrollen. |
+| `anfrage` | Klick auf „Jetzt anfragen". Die Seite springt zu `#b2b-anfrage`. |
+
+Gesendet wird an `'*'`; die Gegenseite prueft `event.origin`, bevor sie reagiert.
+Der Gegenpart steht im Theme in `templates/page.b2b-2026.json`, Section `konfigurator`.
+**Die Adresse steht dort an zwei Stellen** — im `src` des iframes und in `HERKUNFT`
+im Skript. Nach dem Deployment beide aendern, sonst bleibt die Hoehe auf dem Startwert
+und der Knopf tut nichts.
+
+Der Sprung laeuft ueber `location.hash`, nicht ueber `scrollIntoView` mit
+`behavior: 'smooth'`: das Theme setzt `body { overflow: hidden }`, sanftes Scrollen
+bleibt dort wirkungslos — nachgemessen landete es bei 0 statt bei 2230.
 
 ## Produktkatalog
 
@@ -105,7 +136,16 @@ bestellt, braucht 300 Paar. Die Mengenabfrage im Anfrageformular muss das abbild
 `priceFrom: null` bedeutet „auf Anfrage" — aktuell bei der Sneakersocke.
 
 Neue Produkte brauchen ein Foto unter `public/products/` sowie die relative Geometrie
-für Logo-Platzierung und Schriftzug.
+für Logo-Platzierung und Schriftzug. Optional dazu:
+
+- `band`: Von-bis in Anteilen der Bildhoehe. Nur dieser Streifen am Bund nimmt die
+  Wunschfarbe an, der Rest bleibt in der Grundfarbe — so wie bei echter Ware. Ohne
+  Angabe wird das ganze Produkt eingefaerbt. Die Werte am Silhouettenprofil des Fotos
+  messen, nicht schaetzen.
+- `logoOnLabel`: Das Logo sitzt auf der eingewebten Marke statt frei auf der Ware.
+  Ort und Groesse kommen dann aus dem ausgemessenen Aufdruck, das Motiv steht dunkel
+  auf hellem Grund, und der Firmenname entfaellt — beides passt nicht in ein Label.
+  Gilt nur fuer ungedrehte Labels (`name.a === 0`).
 
 ### Offene Zuordnung
 
@@ -114,7 +154,7 @@ Zuordnungen sind gesetzt, aber nicht bestätigt:
 
 | Vorlage | angesetzt | Grundlage |
 | --- | --- | --- |
-| Kniestrumpf | 1,69 € (Casual) | Zuordnung aus `UMBAU-PLAN.md` |
+| Skisocke | 1,69 € (Casual) | Zuordnung aus `UMBAU-PLAN.md` |
 | Sneakersocke | auf Anfrage | Angabe des Shop-Produkts `sneakersocken` |
 
 Der Umbauplan ordnet beide „Casual Socken" zu, das Shop-Produkt Sneakersocken sagt
