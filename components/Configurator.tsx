@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { anbieten } from '@/lib/markenkanal';
+import { aufNachfrageAntworten, melden, type Marke } from '@/lib/markenkanal';
 import type { ProductCard } from '@/lib/products';
 
 /** Standardpalette, solange die Website keine eigenen Markenfarben hergibt. */
@@ -138,19 +138,21 @@ export default function Configurator({
   useEffect(() => () => renderAbort.current?.abort(), []);
 
   // Was hier erkannt wurde, soll das Anfrageformular weiter unten nicht noch
-  // einmal abfragen. Es steht in einem eigenen iframe und meldet sich, sobald
-  // es geladen ist; die Werte liest der Kanal erst in diesem Moment aus.
-  const standRef = useRef({ company, logo, aktiv });
-  standRef.current = { company, logo, aktiv };
-  useEffect(
-    () =>
-      anbieten(() => {
-        const { company: firma, logo: bild, aktiv: produkt } = standRef.current;
-        if (!firma && !bild) return null;
-        return { firma, logo: bild, produkt: produkt || null };
-      }),
-    [],
-  );
+  // einmal abfragen. Beide Richtungen sind noetig: das Formular laedt spaeter
+  // und fragt nach, aber genauso oft steht es schon, wenn hier erst die Domain
+  // eingegeben wird - dann muss der Stand von sich aus hinueber.
+  const marke = (): Marke | null => {
+    if (!company && !logo) return null;
+    return { firma: company, logo, produkt: aktiv || null };
+  };
+
+  const markeRef = useRef(marke);
+  markeRef.current = marke;
+  useEffect(() => aufNachfrageAntworten(() => markeRef.current()), []);
+  useEffect(() => {
+    melden(marke());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company, logo, aktiv]);
 
   // Im iframe kennt die Landingpage die noetige Hoehe nicht. Statt einer festen
   // Zahl meldet die App sie bei jeder Aenderung - sonst scrollt der Rahmen intern.
@@ -486,8 +488,11 @@ export default function Configurator({
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
+                {/* Ohne Mockup das zugeschnittene Vorschaubild: im Original
+                    belegt die Socke nur einen Bruchteil der Breite und ist in
+                    dieser Groesse nicht zu erkennen. */}
                 <img
-                  src={previews[product.key] ?? product.image}
+                  src={previews[product.key] ?? product.preview}
                   alt=""
                   width={product.w}
                   height={product.h}

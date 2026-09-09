@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { nachfragen } from '@/lib/markenkanal';
+import { nachfragen, type Marke } from '@/lib/markenkanal';
 import type { ProductCard } from '@/lib/products';
 
 const MAX_LOGO_BYTES = 5_000_000;
@@ -12,17 +12,18 @@ const MENGEN = [100, 250, 500, 1000, 2000] as const;
 
 const UNENTSCHIEDEN = 'unklar';
 
+const SCHRITTNAMEN = ['Um welche Socke gehts?', 'Design & Stückzahl', 'Kontakt Daten'] as const;
+
 type Schritt = 1 | 2 | 3;
 
 /** Nachricht an die einbettende Seite. Kein Nutzerinhalt, nur Steuerdaten. */
-function melde(was: 'hoehe' | 'gesendet', hoehe?: number) {
+function melde(was: 'hoehe' | 'gesendet' | 'frage-marke', hoehe?: number) {
   if (typeof window === 'undefined' || window.parent === window) return;
   window.parent.postMessage({ typ: 'occulto-anfrage', was, hoehe }, '*');
 }
 
 function mengeText(menge: number): string {
-  const zahl = menge.toLocaleString('de-DE');
-  return menge >= 2000 ? `${zahl}+` : zahl;
+  return menge >= 2000 ? `${menge}+` : String(menge);
 }
 
 export default function Anfrage({
@@ -36,16 +37,13 @@ export default function Anfrage({
 }) {
   const [schritt, setSchritt] = useState<Schritt>(1);
 
-  // Schritt 1
   const [produkt, setProdukt] = useState<string>('');
 
-  // Schritt 2
   const [logo, setLogo] = useState<string | null>(null);
   const [logoName, setLogoName] = useState<string | null>(null);
   const [ohneLogo, setOhneLogo] = useState(false);
-  const [mengeIndex, setMengeIndex] = useState(0);
+  const [mengeIndex, setMengeIndex] = useState(1);
 
-  // Schritt 3
   const [firma, setFirma] = useState('');
   const [person, setPerson] = useState('');
   const [mail, setMail] = useState('');
@@ -59,25 +57,22 @@ export default function Anfrage({
   const [gesendet, setGesendet] = useState(false);
 
   const datei = useRef<HTMLInputElement>(null);
-  const wurzel = useRef<HTMLDivElement>(null);
+  const kopf = useRef<HTMLDivElement>(null);
 
   /* ---------- Uebernahme aus dem Konfigurator ---------- */
 
-  useEffect(
-    () =>
-      nachfragen((marke) => {
-        // Nur fuellen, was leer ist: was der Besucher selbst eingetragen hat,
-        // wird nicht ueberschrieben.
-        if (marke.firma) setFirma((alt) => alt || marke.firma);
-        if (marke.logo) {
-          setLogo((alt) => alt ?? marke.logo);
-          setLogoName((alt) => alt ?? 'Logo aus dem Konfigurator');
-        }
-        if (marke.produkt) setProdukt((alt) => alt || marke.produkt!);
-        setAusKonfigurator(true);
-      }),
-    [],
-  );
+  const uebernehmen = useCallback((marke: Marke) => {
+    // Nur fuellen, was leer ist: selbst Eingetragenes wird nicht ueberschrieben.
+    if (marke.firma) setFirma((alt) => alt || marke.firma);
+    if (marke.logo) {
+      setLogo((alt) => alt ?? marke.logo);
+      setLogoName((alt) => alt ?? 'Logo aus dem Konfigurator');
+    }
+    if (marke.produkt) setProdukt((alt) => alt || marke.produkt!);
+    if (marke.firma || marke.logo) setAusKonfigurator(true);
+  }, []);
+
+  useEffect(() => nachfragen(uebernehmen), [uebernehmen]);
 
   /* ---------- Hoehe melden ---------- */
 
@@ -133,7 +128,7 @@ export default function Anfrage({
     }
     setFehler('');
     setSchritt((s) => (s === 3 ? 3 : ((s + 1) as Schritt)));
-    wurzel.current?.scrollIntoView({ block: 'nearest' });
+    kopf.current?.scrollIntoView({ block: 'nearest' });
   }
 
   function zurueck() {
@@ -172,9 +167,8 @@ export default function Anfrage({
       if (!antwort.ok) throw new Error(daten.error ?? 'Die Anfrage kam nicht durch.');
 
       setGesendet(true);
-      // Eingebettet leitet die Seite selbst weiter - navigiert nur der iframe,
-      // zaehlt der Seitenaufruf der Danke-Seite nicht und b2b_anfrage_success
-      // feuert nicht.
+      // Eingebettet leitet die Seite weiter, nicht der Rahmen: b2b_anfrage_success
+      // haengt am Seitenaufruf der Danke-Seite.
       melde('gesendet');
     } catch (err) {
       setFehler(err instanceof Error ? err.message : 'Die Anfrage kam nicht durch.');
@@ -190,7 +184,7 @@ export default function Anfrage({
       <section className={eingebettet ? 'b2b-form ist-eingebettet' : 'b2b-form'} id="b2b-anfrage">
         <div className="b2b-form__fertig">
           <Ueberschrift className="b2b-form__titel">Danke, deine Anfrage ist da.</Ueberschrift>
-          <p className="b2b-form__text">
+          <p className="b2b-form__lead">
             Wir melden uns innerhalb eines Werktags mit einem Vorschlag bei dir.
           </p>
         </div>
@@ -199,89 +193,89 @@ export default function Anfrage({
   }
 
   return (
-    <section
-      className={eingebettet ? 'b2b-form ist-eingebettet' : 'b2b-form'}
-      id="b2b-anfrage"
-    >
-      <div ref={wurzel}>
-        <Ueberschrift className="b2b-form__titel">Anfrage stellen</Ueberschrift>
-        <p className="b2b-form__text">
-          Drei kurze Schritte. Du bekommst einen unverbindlichen Designvorschlag, kostenlos.
-        </p>
+    <section className={eingebettet ? 'b2b-form ist-eingebettet' : 'b2b-form'} id="b2b-anfrage">
+      <div ref={kopf}>
+        <Ueberschrift className="b2b-form__titel">Anfrage</Ueberschrift>
 
-        <ol className="b2b-form__schritte" aria-label="Fortschritt">
-          {(['Produkt', 'Design & Menge', 'Kontakt'] as const).map((name, i) => {
+        {/* Fortschritt: drei Kreise auf einer durchgehenden Linie. Die Linie
+            liegt hinter den Kreisen, der zurueckgelegte Teil ist kraeftiger. */}
+        <ol className="b2b-form__leiter" aria-label="Fortschritt">
+          {SCHRITTNAMEN.map((name, i) => {
             const nummer = (i + 1) as Schritt;
             const zustand =
               nummer < schritt ? ' ist-fertig' : nummer === schritt ? ' ist-aktiv' : '';
             return (
-              <li key={name} className={`b2b-form__schritt${zustand}`}>
-                <span className="b2b-form__nummer" aria-hidden="true">
+              <li key={name} className={`b2b-form__stufe${zustand}`}>
+                <span
+                  className="b2b-form__kreis"
+                  aria-current={nummer === schritt ? 'step' : undefined}
+                >
                   {nummer}
                 </span>
-                <span>{name}</span>
+                <span className="b2b-form__stufenname">{name}</span>
               </li>
             );
           })}
         </ol>
+      </div>
 
-        {ausKonfigurator && (
-          <p className="b2b-form__uebernommen">
-            Aus dem Konfigurator übernommen{firma && `: ${firma}`}
-            {logo && ', mit deinem Logo'}. Alles änderbar.
-          </p>
+      <h3 className="b2b-form__frage">{SCHRITTNAMEN[schritt - 1]}</h3>
+
+      {ausKonfigurator && (
+        <p className="b2b-form__uebernommen">
+          Aus dem Konfigurator übernommen{firma && `: ${firma}`}
+          {logo && ', mit deinem Logo'}. Alles änderbar.
+        </p>
+      )}
+
+      <form onSubmit={senden} noValidate>
+        {/* ---------- Schritt 1 ---------- */}
+        {schritt === 1 && (
+          <div className="b2b-form__kacheln">
+            {products.map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                className={produkt === p.key ? 'b2b-form__kachel ist-gewaehlt' : 'b2b-form__kachel'}
+                aria-pressed={produkt === p.key}
+                onClick={() => {
+                  setProdukt(p.key);
+                  setFehler('');
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.preview} alt="" width={480} height={480} />
+                <span className="b2b-form__kachelname">{p.label}</span>
+                <span className="b2b-form__punkt" aria-hidden="true" />
+              </button>
+            ))}
+            <button
+              type="button"
+              className={
+                produkt === UNENTSCHIEDEN
+                  ? 'b2b-form__kachel ist-offen ist-gewaehlt'
+                  : 'b2b-form__kachel ist-offen'
+              }
+              aria-pressed={produkt === UNENTSCHIEDEN}
+              onClick={() => {
+                setProdukt(UNENTSCHIEDEN);
+                setFehler('');
+              }}
+            >
+              <span className="b2b-form__fragezeichen" aria-hidden="true">
+                ?
+              </span>
+              <span className="b2b-form__kachelname">Weiß ich noch nicht</span>
+              <span className="b2b-form__punkt" aria-hidden="true" />
+            </button>
+          </div>
         )}
 
-        <form onSubmit={senden} noValidate>
-          {/* ---------- Schritt 1 ---------- */}
-          {schritt === 1 && (
-            <fieldset className="b2b-form__block">
-              <legend className="b2b-form__frage">Um welche Socke geht es?</legend>
-              <div className="b2b-form__kacheln">
-                {products.map((p) => (
-                  <button
-                    key={p.key}
-                    type="button"
-                    className={
-                      produkt === p.key ? 'b2b-form__kachel ist-gewaehlt' : 'b2b-form__kachel'
-                    }
-                    aria-pressed={produkt === p.key}
-                    onClick={() => {
-                      setProdukt(p.key);
-                      setFehler('');
-                    }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.image} alt="" width={p.w} height={p.h} />
-                    <span>{p.label}</span>
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  className={
-                    produkt === UNENTSCHIEDEN
-                      ? 'b2b-form__kachel ist-offen ist-gewaehlt'
-                      : 'b2b-form__kachel ist-offen'
-                  }
-                  aria-pressed={produkt === UNENTSCHIEDEN}
-                  onClick={() => {
-                    setProdukt(UNENTSCHIEDEN);
-                    setFehler('');
-                  }}
-                >
-                  <span className="b2b-form__fragezeichen" aria-hidden="true">
-                    ?
-                  </span>
-                  <span>Weiß ich noch nicht</span>
-                </button>
-              </div>
-            </fieldset>
-          )}
-
-          {/* ---------- Schritt 2 ---------- */}
-          {schritt === 2 && (
-            <div className="b2b-form__block">
-              <p className="b2b-form__frage">Hast du schon ein Logo?</p>
+        {/* ---------- Schritt 2 ---------- */}
+        {schritt === 2 && (
+          <div className="b2b-form__zwei">
+            <div>
+              <p className="b2b-form__unterfrage">Hast du schon ein Design oder Logo?</p>
 
               {logo && !ohneLogo ? (
                 <div className="b2b-form__logo">
@@ -305,8 +299,23 @@ export default function Anfrage({
                     nimmDatei(e.dataTransfer.files[0]);
                   }}
                 >
-                  Logo hierher ziehen oder auswählen
-                  <span>PNG, JPG oder SVG, bis 5 MB</span>
+                  <svg
+                    width="26"
+                    height="26"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <path d="M17 8l-5-5-5 5" />
+                    <path d="M12 3v13" />
+                  </svg>
+                  <span className="b2b-form__ablagetitel">Drag &amp; Drop</span>
+                  <span className="b2b-form__ablagehinweis">PNG, JPG oder SVG, bis 5 MB</span>
                 </button>
               )}
 
@@ -329,8 +338,12 @@ export default function Anfrage({
                 />
                 <span>Nein, noch nicht — wir entwerfen etwas für dich.</span>
               </label>
+            </div>
 
-              <p className="b2b-form__frage b2b-form__frage--zweite">Wie viele ungefähr?</p>
+            <div>
+              <p className="b2b-form__unterfrage">
+                Gib die voraussichtliche Stückzahl an (100 – 2000+)
+              </p>
               <input
                 type="range"
                 min={0}
@@ -338,7 +351,7 @@ export default function Anfrage({
                 step={1}
                 value={mengeIndex}
                 onChange={(e) => setMengeIndex(Number(e.target.value))}
-                aria-label="Ungefähre Gesamtmenge"
+                aria-label="Voraussichtliche Gesamtmenge"
                 aria-valuetext={`${mengeText(MENGEN[mengeIndex]!)} Stück`}
                 className="b2b-form__regler"
               />
@@ -354,105 +367,108 @@ export default function Anfrage({
                 — passt das nicht, finden wir im Gespräch einen Weg.
               </p>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* ---------- Schritt 3 ---------- */}
-          {schritt === 3 && (
-            <div className="b2b-form__block">
-              <div className="b2b-form__paar">
-                <label>
-                  <span>Firma *</span>
-                  <input
-                    value={firma}
-                    onChange={(e) => setFirma(e.target.value)}
-                    autoComplete="organization"
-                    required
-                  />
-                </label>
-                <label>
-                  <span>Ansprechpartner *</span>
-                  <input
-                    value={person}
-                    onChange={(e) => setPerson(e.target.value)}
-                    autoComplete="name"
-                    required
-                  />
-                </label>
-                <label>
-                  <span>E-Mail *</span>
-                  <input
-                    type="email"
-                    value={mail}
-                    onChange={(e) => setMail(e.target.value)}
-                    autoComplete="email"
-                    required
-                  />
-                </label>
-                <label>
-                  <span>Telefon</span>
-                  <input
-                    type="tel"
-                    value={telefon}
-                    onChange={(e) => setTelefon(e.target.value)}
-                    autoComplete="tel"
-                  />
-                </label>
-              </div>
-
-              <label className="b2b-form__lang">
-                <span>Nachricht</span>
-                <textarea
-                  rows={4}
-                  value={nachricht}
-                  onChange={(e) => setNachricht(e.target.value)}
-                  placeholder="Anlass, Wunschtermin, Farben …"
-                />
-              </label>
-
-              <label className="b2b-form__kasten">
+        {/* ---------- Schritt 3 ---------- */}
+        {schritt === 3 && (
+          <div className="b2b-form__felder">
+            <div className="b2b-form__reihe">
+              <label className="b2b-form__feld">
+                <span>Firma/Organisation/Event*</span>
                 <input
-                  type="checkbox"
-                  checked={einwilligung}
-                  onChange={(e) => setEinwilligung(e.target.checked)}
+                  value={firma}
+                  onChange={(e) => setFirma(e.target.value)}
+                  autoComplete="organization"
                   required
                 />
-                <span>
-                  Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage
-                  gespeichert werden. Mehr in der{' '}
-                  <a href="/policies/privacy-policy" target="_blank" rel="noreferrer">
-                    Datenschutzerklärung
-                  </a>
-                  . *
-                </span>
+              </label>
+              <label className="b2b-form__feld">
+                <span>Ansprechpartner*</span>
+                <input
+                  value={person}
+                  onChange={(e) => setPerson(e.target.value)}
+                  autoComplete="name"
+                  required
+                />
               </label>
             </div>
-          )}
 
-          {fehler && (
-            <p className="b2b-form__fehler" role="alert">
-              {fehler}{' '}
-              <a href={`mailto:${fallbackMail}`}>Oder schreib uns direkt: {fallbackMail}</a>
-            </p>
-          )}
+            <div className="b2b-form__reihe">
+              <label className="b2b-form__feld">
+                <span>Email*</span>
+                <input
+                  type="email"
+                  value={mail}
+                  onChange={(e) => setMail(e.target.value)}
+                  autoComplete="email"
+                  required
+                />
+              </label>
+              <label className="b2b-form__feld">
+                <span>Telefonnummer</span>
+                <input
+                  type="tel"
+                  value={telefon}
+                  onChange={(e) => setTelefon(e.target.value)}
+                  autoComplete="tel"
+                />
+              </label>
+            </div>
 
-          <div className="b2b-form__leiste">
-            {schritt > 1 && (
-              <button type="button" className="b2b-form__zurueck" onClick={zurueck}>
-                Zurück
-              </button>
-            )}
-            {schritt < 3 ? (
-              <button type="button" className="b2b-form__weiter" onClick={weiter}>
-                Weiter
-              </button>
-            ) : (
-              <button type="submit" className="b2b-form__weiter" disabled={sendet}>
-                {sendet ? 'Wird gesendet …' : 'Anfrage senden'}
-              </button>
-            )}
+            <label className="b2b-form__feld">
+              <span>Nachricht (Optional)</span>
+              <textarea
+                rows={3}
+                value={nachricht}
+                onChange={(e) => setNachricht(e.target.value)}
+              />
+            </label>
+
+            <label className="b2b-form__kasten">
+              <input
+                type="checkbox"
+                checked={einwilligung}
+                onChange={(e) => setEinwilligung(e.target.checked)}
+                required
+              />
+              <span>
+                Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage gespeichert
+                werden. Mehr in der{' '}
+                <a href="/policies/privacy-policy" target="_blank" rel="noreferrer">
+                  Datenschutzerklärung
+                </a>
+                . *
+              </span>
+            </label>
           </div>
-        </form>
-      </div>
+        )}
+
+        {fehler && (
+          <p className="b2b-form__fehler" role="alert">
+            {fehler} <a href={`mailto:${fallbackMail}`}>Oder schreib uns direkt: {fallbackMail}</a>
+          </p>
+        )}
+
+        <div className="b2b-form__leiste">
+          {schritt > 1 ? (
+            <button type="button" className="b2b-form__knopf" onClick={zurueck}>
+              zurück
+            </button>
+          ) : (
+            <span />
+          )}
+          {schritt < 3 ? (
+            <button type="button" className="b2b-form__knopf ist-stark" onClick={weiter}>
+              Weiter
+            </button>
+          ) : (
+            <button type="submit" className="b2b-form__knopf ist-stark" disabled={sendet}>
+              {sendet ? 'Wird gesendet …' : 'Anfrage senden'}
+            </button>
+          )}
+        </div>
+      </form>
     </section>
   );
 }

@@ -127,6 +127,10 @@ export const PRODUCT_CARDS = PRODUCTS.map((p) => ({
   key: p.key,
   label: p.label,
   image: `/products/${p.file}`,
+  // Auf die Ware zugeschnitten, fuer kleine Auswahlkacheln. Erzeugt von
+  // scripts/vorschaubilder.mjs - im Original belegt die Socke je nach Motiv
+  // nur 41 bis 59 Prozent der Bildbreite und verschwindet in der Kachel.
+  preview: `/products/vorschau/${p.file.replace(/\.[^.]+$/, '.webp')}`,
   w: p.w,
   h: p.h,
   dark: p.dark,

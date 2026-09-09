@@ -2,20 +2,22 @@
  * Verbindung zwischen Konfigurator und Anfrageformular.
  *
  * Beide haengen als eigene iframes in derselben Landingpage, sind also getrennte
- * Dokumente ohne gemeinsamen React-Zustand. Sie liegen aber auf derselben
- * Herkunft, und dafuer gibt es BroadcastChannel.
+ * Dokumente ohne gemeinsamen React-Zustand. Die Seite dazwischen leitet weiter -
+ * sie vermittelt ohnehin schon Hoehe und Absenden.
  *
- * Warum Frage und Antwort statt einfach senden: Das Formular steht weiter unten
- * auf der Seite und laedt spaeter (loading="lazy"). Ein einmal gesendetes
- * Ereignis waere da laengst verpufft. Also fragt das Formular beim Aufwachen
- * nach, und der Konfigurator antwortet - falls er ueberhaupt etwas weiss.
- * Weiss er nichts, kommt keine Antwort und das Formular bleibt leer.
+ * Zwei Richtungen, weil beide Reihenfolgen vorkommen:
+ *
+ *  - Das Formular laedt spaeter (loading="lazy") und fragt beim Aufwachen nach,
+ *    was der Konfigurator schon weiss.
+ *  - Der Besucher gibt seine Domain erst ein, wenn das Formular laengst geladen
+ *    ist. Dann schiebt der Konfigurator die Marke von sich aus nach.
+ *
+ * Ohne den zweiten Weg blieb das Formular leer, sobald jemand erst scrollte und
+ * dann den Konfigurator benutzte - also im Normalfall.
  *
  * Bewusst kein sessionStorage: das Logo ist eine data:-URI von bis zu 4 MB und
- * sprengt die Ablage. Ueber den Kanal geht es ohne Groessengrenze.
+ * sprengt die Ablage.
  */
-
-const KANAL = 'occulto-marke';
 
 export type Marke = {
   firma: string;
@@ -25,40 +27,86 @@ export type Marke = {
   produkt: string | null;
 };
 
-type Nachricht = { was: 'frage' } | { was: 'antwort'; marke: Marke };
+const MAX_FIRMA = 120;
+const MAX_LOGO = 6_000_000;
 
-function kanal(): BroadcastChannel | null {
-  if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') return null;
-  return new BroadcastChannel(KANAL);
+function eingebettet(): boolean {
+  return typeof window !== 'undefined' && window.parent !== window;
+}
+
+function anDieSeite(nachricht: unknown): void {
+  if (!eingebettet()) return;
+  window.parent.postMessage(nachricht, '*');
 }
 
 /**
- * Der Konfigurator meldet sich an und beantwortet Nachfragen des Formulars.
- * `lesen` liefert den aktuellen Stand - als Funktion, damit die Antwort nicht
- * auf einem alten Zustand aus der Zeit der Anmeldung sitzenbleibt.
+ * Prueft, was hereinkommt.
+ *
+ * Die Nachricht kommt von der einbettenden Seite, und wer diese Seite ist,
+ * bestimmt nicht die App. Der Inhalt landet in Formularfeldern, die der
+ * Besucher sieht und aendern kann - trotzdem wird nur uebernommen, was die
+ * richtige Form hat, und nur in vernuenftiger Groesse.
  */
-export function anbieten(lesen: () => Marke | null): () => void {
-  const c = kanal();
-  if (!c) return () => {};
+function pruefeMarke(wert: unknown): Marke | null {
+  if (!wert || typeof wert !== 'object') return null;
+  const m = wert as Record<string, unknown>;
 
-  c.onmessage = (event: MessageEvent<Nachricht>) => {
-    if (event.data?.was !== 'frage') return;
-    const marke = lesen();
-    if (marke) c.postMessage({ was: 'antwort', marke } satisfies Nachricht);
-  };
+  const firma = typeof m.firma === 'string' ? m.firma.slice(0, MAX_FIRMA) : '';
+  const produkt = typeof m.produkt === 'string' ? m.produkt.slice(0, 40) : null;
 
-  return () => c.close();
+  let logo: string | null = null;
+  if (typeof m.logo === 'string' && m.logo.startsWith('data:image/') && m.logo.length <= MAX_LOGO) {
+    logo = m.logo;
+  }
+
+  if (!firma && !logo) return null;
+  return { firma, logo, produkt };
 }
 
-/** Das Formular fragt einmal nach und nimmt entgegen, was zurueckkommt. */
-export function nachfragen(uebernehmen: (marke: Marke) => void): () => void {
-  const c = kanal();
-  if (!c) return () => {};
+/**
+ * Der Konfigurator meldet seinen Stand.
+ *
+ * `marke` ist null, solange nichts erkannt wurde - dann wird auch nichts
+ * gesendet und das Formular bleibt leer.
+ */
+export function melden(marke: Marke | null): void {
+  if (!marke) return;
+  anDieSeite({ typ: 'occulto-konfigurator', was: 'marke', marke });
+}
 
-  c.onmessage = (event: MessageEvent<Nachricht>) => {
-    if (event.data?.was === 'antwort') uebernehmen(event.data.marke);
+/**
+ * Der Konfigurator beantwortet Nachfragen des Formulars.
+ * `lesen` als Funktion, damit die Antwort den aktuellen Stand nimmt und nicht
+ * den aus der Zeit der Anmeldung.
+ */
+export function aufNachfrageAntworten(lesen: () => Marke | null): () => void {
+  if (!eingebettet()) return () => {};
+
+  const horcher = (event: MessageEvent) => {
+    const d = event.data as { typ?: string; was?: string } | null;
+    if (!d || d.typ !== 'occulto-anfrage' || d.was !== 'frage-marke') return;
+    melden(lesen());
   };
-  c.postMessage({ was: 'frage' } satisfies Nachricht);
 
-  return () => c.close();
+  window.addEventListener('message', horcher);
+  return () => window.removeEventListener('message', horcher);
+}
+
+/**
+ * Das Formular fragt einmal nach und hoert danach weiter zu - der Konfigurator
+ * kann jederzeit etwas Neues finden.
+ */
+export function nachfragen(uebernehmen: (marke: Marke) => void): () => void {
+  if (!eingebettet()) return () => {};
+
+  const horcher = (event: MessageEvent) => {
+    const d = event.data as { typ?: string; marke?: unknown } | null;
+    if (!d || d.typ !== 'occulto-marke') return;
+    const marke = pruefeMarke(d.marke);
+    if (marke) uebernehmen(marke);
+  };
+
+  window.addEventListener('message', horcher);
+  anDieSeite({ typ: 'occulto-anfrage', was: 'frage-marke' });
+  return () => window.removeEventListener('message', horcher);
 }
