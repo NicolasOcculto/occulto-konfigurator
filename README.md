@@ -73,10 +73,29 @@ lokal in rund 300 ms.
 
 ## Produktkatalog
 
-`lib/products.ts`. Preise, Mindestmengen und Lieferzeiten sind **Platzhalter** aus dem
-Prototyp und gehören vor dem Livegang gegen die echten Konditionen getauscht.
+`lib/products.ts`. Preise stammen aus `OCCULTO_PREISLISTE_Socken.pdf` (Kundenpreise
+2026, kein Großhandel), Mindestmenge und Lieferzeit aus den Angaben im Shop.
+
+**Die Mindestmenge von 100 gilt pro Größe, nicht pro Bestellung.** Wer drei Größen
+bestellt, braucht 300 Paar. Die Mengenabfrage im Anfrageformular muss das abbilden.
+
+`priceFrom: null` bedeutet „auf Anfrage" — aktuell bei der Sneakersocke.
+
 Neue Produkte brauchen ein Foto unter `public/products/` sowie die relative Geometrie
 für Logo-Platzierung und Schriftzug.
+
+### Offene Zuordnung
+
+Der Konfigurator kennt vier Vorlagen, die Preisliste vier Kategorien. Zwei
+Zuordnungen sind gesetzt, aber nicht bestätigt:
+
+| Vorlage | angesetzt | Grundlage |
+| --- | --- | --- |
+| Kniestrumpf | 1,69 € (Casual) | Zuordnung aus `UMBAU-PLAN.md` |
+| Sneakersocke | auf Anfrage | Angabe des Shop-Produkts `sneakersocken` |
+
+Der Umbauplan ordnet beide „Casual Socken" zu, das Shop-Produkt Sneakersocken sagt
+dagegen „auf Anfrage". Bitte einmal klären.
 
 ## Hinweise zum Deployment
 

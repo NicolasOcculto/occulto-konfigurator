@@ -4,8 +4,12 @@
  * Geometrie (logo/name) ist in Anteilen der Bildbreite bzw. -hoehe angegeben,
  * damit sie unabhaengig von der Aufloesung des Produktfotos bleibt.
  *
- * Preise, Mindestmengen und Lieferzeiten sind Platzhalter aus dem Prototyp und
- * gehoeren vor dem Livegang gegen die echten Konditionen getauscht.
+ * Preise stammen aus OCCULTO_PREISLISTE_Socken.pdf (Kundenpreise 2026, kein
+ * Grosshandel), Mindestmenge und Lieferzeit aus den Angaben im Shop.
+ *
+ * Achtung bei der Mindestmenge: 100 gilt **pro Groesse**. Wer drei Groessen
+ * bestellt, braucht 300 Paar. Das muss die Mengenabfrage im Formular
+ * abbilden, sonst entstehen Anfragen, die abgelehnt werden muessen.
  */
 
 export type Product = {
@@ -21,12 +25,17 @@ export type Product = {
   logo: { x: number; y: number; s: number };
   /** Eingewebter Schriftzug: Mittelpunkt, Drehung in Grad, Laenge und Strichstaerke. */
   name: { x: number; y: number; a: number; len: number; th: number };
-  priceFrom: number;
+  /** Ab-Preis pro Stueck. null bedeutet "auf Anfrage". */
+  priceFrom: number | null;
+  /** Mindestmenge pro Groesse, nicht pro Bestellung. */
   minQuantity: number;
   unit: string;
   leadTime: string;
   material: string;
 };
+
+/** Einheitlich fuer alle Produkte, aus den Angaben im Shop. */
+const LIEFERZEIT = '6–8 Wochen';
 
 export const PRODUCTS: Product[] = [
   {
@@ -38,11 +47,11 @@ export const PRODUCTS: Product[] = [
     dark: false,
     logo: { x: 0.545, y: 0.22, s: 0.2 },
     name: { x: 0.499, y: 0.806, a: -47, len: 0.107, th: 0.021 },
-    priceFrom: 6.9,
+    priceFrom: 1.69,
     minQuantity: 100,
     unit: 'Paar',
-    leadTime: '4–5 Wochen',
-    material: 'Gekaemmte Baumwolle, eingestrickt',
+    leadTime: LIEFERZEIT,
+    material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan',
   },
   {
     key: 'sneaker',
@@ -53,11 +62,11 @@ export const PRODUCTS: Product[] = [
     dark: false,
     logo: { x: 0.56, y: 0.42, s: 0.17 },
     name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
-    priceFrom: 5.4,
+    priceFrom: null,
     minQuantity: 100,
     unit: 'Paar',
-    leadTime: '4–5 Wochen',
-    material: 'Gekaemmte Baumwolle, eingestrickt',
+    leadTime: LIEFERZEIT,
+    material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan',
   },
   {
     key: 'tennis',
@@ -68,26 +77,26 @@ export const PRODUCTS: Product[] = [
     dark: false,
     logo: { x: 0.56, y: 0.27, s: 0.19 },
     name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
-    priceFrom: 5.9,
+    priceFrom: 2.1,
     minQuantity: 100,
     unit: 'Paar',
-    leadTime: '4–5 Wochen',
-    material: 'Frottee-Sohle, eingestrickt',
+    leadTime: LIEFERZEIT,
+    material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan, frottierte Sohle',
   },
   {
     key: 'muetze',
-    label: 'Muetze',
+    label: 'Mütze',
     file: 'muetze.webp',
     w: 692,
     h: 900,
     dark: true,
     logo: { x: 0.5, y: 0.33, s: 0.26 },
     name: { x: 0.518, y: 0.689, a: 0, len: 0.13, th: 0.02 },
-    priceFrom: 12.5,
-    minQuantity: 50,
-    unit: 'Stueck',
-    leadTime: '5–6 Wochen',
-    material: 'Merinomischung, gewebtes Label',
+    priceFrom: 6.5,
+    minQuantity: 100,
+    unit: 'Stück',
+    leadTime: LIEFERZEIT,
+    material: 'Strickmütze, eingewebtes Label oder Stick',
   },
 ];
 

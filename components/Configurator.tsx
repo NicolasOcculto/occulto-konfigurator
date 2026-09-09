@@ -32,7 +32,9 @@ type RenderResponse = {
   error?: string;
 };
 
-function formatPrice(value: number): string {
+function formatPrice(value: number | null): string {
+  // null heisst: Preis steht noch nicht fest, wird im Angebot gerechnet.
+  if (value === null) return 'auf Anfrage';
   return value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
 }
 
@@ -347,7 +349,7 @@ export default function Configurator({ products }: { products: ProductCard[] }) 
                 <dd className="price">{formatPrice(product.priceFrom)}</dd>
                 <dt>Mindestmenge</dt>
                 <dd>
-                  {product.minQuantity} {product.unit}
+                  {product.minQuantity} {product.unit} pro Größe
                 </dd>
                 <dt>Lieferzeit</dt>
                 <dd>{product.leadTime}</dd>
