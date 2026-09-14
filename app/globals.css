@@ -758,6 +758,9 @@ input {
 
 .b2b-form__kachelname {
   line-height: 1.25;
+  /* Zwei Zeilen Platz, damit die Wahlkreise darunter auf einer Linie bleiben,
+     wenn ein Name umbricht. */
+  min-height: 2.5em;
 }
 
 .b2b-form__kachel.ist-gewaehlt .b2b-form__kachelname {
@@ -1009,6 +1012,14 @@ input {
 
 .b2b-form__fertig {
   padding: 40px 0;
+}
+
+/* Fuenf Kacheln nebeneinander gehen nur auf breiten Schirmen. Darunter
+   ueberlappen die Beschriftungen - gemessen bei 375 px: 57 px je Kachel. */
+@media screen and (max-width: 640px) {
+  .b2b-form__kacheln {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media screen and (max-width: 899px) {
