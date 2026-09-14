@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PRODUCT_BY_KEY } from '@/lib/products';
+import { betreff, htmlMail, textMail, type Anfrage } from '@/lib/anfrage-mail';
 import { clientIp, rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -20,18 +21,8 @@ const ABSENDER = process.env.ANFRAGE_ABSENDER || 'Occulto B2B <onboarding@resend
 // Frei einstellbar im Formular, deshalb hier ein Bereich statt einer Liste.
 // Die Grenzen sind grosszuegig: sie sollen Unsinn abfangen, nicht verhandeln.
 const MENGE_MIN = 100;
-const MENGE_MAX = 5000;
+const MENGE_MAX = 2000;
 const UNENTSCHIEDEN = 'unklar';
-
-/** Zeichen, die in HTML eine Bedeutung haetten. Die Mail baut HTML aus Nutzertext. */
-function h(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 function text(value: unknown, maxLaenge: number): string {
   if (typeof value !== 'string') return '';
@@ -71,14 +62,6 @@ function anhangAus(dataUri: string, name: string): Anhang | null {
     content: puffer.toString('base64'),
     contentType: typ,
   };
-}
-
-function zeile(name: string, wert: string): string {
-  return (
-    `<tr><th align="left" style="padding:6px 14px 6px 0;vertical-align:top;` +
-    `border-bottom:1px solid #eee;white-space:nowrap">${h(name)}</th>` +
-    `<td style="padding:6px 0;border-bottom:1px solid #eee">${h(wert) || '&mdash;'}</td></tr>`
-  );
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -167,25 +150,21 @@ export async function POST(request: Request): Promise<NextResponse> {
   const nachricht = text(roh.nachricht, 4000);
   const ausKonfigurator = roh.ausKonfigurator === true;
 
-  const tabelle =
-    `<table style="border-collapse:collapse;font:14px/1.5 Helvetica,Arial,sans-serif">` +
-    zeile('Firma', firma) +
-    zeile('Ansprechpartner', person) +
-    zeile('E-Mail', mail) +
-    zeile('Telefon', telefon) +
-    zeile('Produkt', produkt) +
-    zeile(
-      'Menge gesamt',
-      menge >= MENGE_MAX ? `${menge}+ Paar` : `${menge} Paar`,
-    ) +
-    zeile('Logo', anhang ? `als Anhang: ${anhang.filename}` : 'noch keins') +
-    zeile('Aus dem Konfigurator', ausKonfigurator ? 'ja' : 'nein') +
-    zeile('Nachricht', nachricht) +
-    `</table>`;
-
-  const koerper =
-    `<p style="font:14px/1.5 Helvetica,Arial,sans-serif">Neue B2B-Anfrage über die Landingpage.</p>` +
-    tabelle;
+  const anfrage: Anfrage = {
+    firma,
+    person,
+    mail,
+    telefon,
+    produkt,
+    menge,
+    mengeText:
+      menge >= MENGE_MAX
+        ? `${menge.toLocaleString('de-DE')}+ Paar`
+        : `${menge.toLocaleString('de-DE')} Paar`,
+    logoName: anhang ? anhang.filename : null,
+    nachricht,
+    ausKonfigurator,
+  };
 
   const schluessel = process.env.RESEND_API_KEY;
   if (!schluessel) {
@@ -208,8 +187,9 @@ export async function POST(request: Request): Promise<NextResponse> {
         from: ABSENDER,
         to: [EMPFAENGER],
         reply_to: mail,
-        subject: `B2B-Anfrage: ${firma}`,
-        html: koerper,
+        subject: betreff(anfrage),
+        html: htmlMail(anfrage),
+        text: textMail(anfrage),
         ...(anhang
           ? { attachments: [{ filename: anhang.filename, content: anhang.content }] }
           : {}),

@@ -13,11 +13,11 @@ const ERLAUBTE_TYPEN = ['image/png', 'image/jpeg', 'image/svg+xml'];
  * blockieren nicht, sie werden im Gespraech hochgehandelt.
  */
 const MENGE_MIN = 100;
-const MENGE_MAX = 5000;
+const MENGE_MAX = 2000;
 const MENGE_SCHRITT = 50;
 const MENGE_START = 500;
 /** Nur Beschriftung unter dem Regler, keine Rastpunkte. */
-const MENGE_MARKEN = [100, 1000, 2000, 3000, 5000] as const;
+const MENGE_MARKEN = [100, 500, 1000, 1500, 2000] as const;
 
 const UNENTSCHIEDEN = 'unklar';
 
@@ -235,6 +235,7 @@ export default function Anfrage({
 
   return (
     <section className={eingebettet ? 'b2b-form ist-eingebettet' : 'b2b-form'} id="b2b-anfrage">
+      <div className="b2b-form__karte">
       <div ref={kopf}>
         <Ueberschrift className="b2b-form__titel">Anfrage</Ueberschrift>
 
@@ -269,7 +270,8 @@ export default function Anfrage({
         </ol>
       </div>
 
-      <h3 className="b2b-form__frage">{SCHRITTFRAGEN[schritt - 1]}</h3>
+      <div className="b2b-form__kopfzeile">
+        <h3 className="b2b-form__frage">{SCHRITTFRAGEN[schritt - 1]}</h3>
 
       {/* Fest reservierte Zeile direkt unter der Frage: dort schaut man nach dem
           Klick hin, und die Hoehe des Formulars aendert sich nicht, wenn eine
@@ -283,7 +285,8 @@ export default function Anfrage({
             <a href={`mailto:${fallbackMail}`}>Schreib uns direkt: {fallbackMail}</a>
           </>
         )}
-      </p>
+        </p>
+      </div>
 
       {ausKonfigurator && (
         <p className="b2b-form__uebernommen">
@@ -531,6 +534,7 @@ export default function Anfrage({
           )}
         </div>
       </form>
+      </div>
     </section>
   );
 }
