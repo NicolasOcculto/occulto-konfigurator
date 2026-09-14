@@ -1,5 +1,5 @@
 import Anfrage from '@/components/Anfrage';
-import { PRODUCT_CARDS } from '@/lib/products';
+import { ANFRAGE_KATEGORIEN } from '@/lib/products';
 
 /** Rueckfallweg, wenn der Versand scheitert. Gleiche Adresse wie der Empfaenger. */
 const FALLBACK_MAIL = process.env.ANFRAGE_EMPFAENGER || 'nicolas.grinninger@occulto.de';
@@ -39,7 +39,7 @@ export default async function AnfrageSeite({
 
   return (
     <Anfrage
-      products={PRODUCT_CARDS}
+      kategorien={ANFRAGE_KATEGORIEN}
       eingebettet={params.eingebettet === '1'}
       fallbackMail={FALLBACK_MAIL}
       datenschutz={datenschutz}

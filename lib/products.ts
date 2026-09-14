@@ -142,3 +142,39 @@ export const PRODUCT_CARDS = PRODUCTS.map((p) => ({
 }));
 
 export type ProductCard = (typeof PRODUCT_CARDS)[number];
+
+/**
+ * Auswahl im Anfrageformular.
+ *
+ * Bewusst nicht dieselbe Liste wie oben: der Konfigurator zeigt die vier
+ * Vorlagen, fuer die es Mockups gibt. Im Formular geht es dagegen um die
+ * Kategorien, die Occulto anbietet - eine Skisocke ist eine Spezialsocke, eine
+ * Muetze faellt unter weitere Textilien. Reihenfolge nach Nachfrage, das
+ * Haeufigste zuerst.
+ */
+export const ANFRAGE_KATEGORIEN = [
+  { key: 'tennis', label: 'Tennissocken', vorschau: '/products/vorschau/tennis.webp' },
+  { key: 'sneaker', label: 'Sneakersocken', vorschau: '/products/vorschau/sneaker.webp' },
+  { key: 'spezial', label: 'Spezialsocken', vorschau: '/products/vorschau/skisocke.webp' },
+  { key: 'textil', label: 'Weitere Textilien', vorschau: '/products/vorschau/muetze.webp' },
+] as const;
+
+export type AnfrageKategorie = (typeof ANFRAGE_KATEGORIEN)[number];
+
+/** Was der Konfigurator zeigt, auf die Kategorie des Formulars uebersetzt. */
+const KATEGORIE_JE_VORLAGE: Record<string, string> = {
+  tennis: 'tennis',
+  sneaker: 'sneaker',
+  skisocke: 'spezial',
+  muetze: 'textil',
+};
+
+export function kategorieAus(vorlage: string | null): string | null {
+  if (!vorlage) return null;
+  return KATEGORIE_JE_VORLAGE[vorlage] ?? null;
+}
+
+/** Beschriftung fuer die Mail. Liefert null bei unbekanntem Schluessel. */
+export function kategorieLabel(key: string): string | null {
+  return ANFRAGE_KATEGORIEN.find((k) => k.key === key)?.label ?? null;
+}

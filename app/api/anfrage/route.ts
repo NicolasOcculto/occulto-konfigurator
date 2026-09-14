@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PRODUCT_BY_KEY } from '@/lib/products';
+import { kategorieLabel } from '@/lib/products';
 import { betreff, htmlMail, textMail, type Anfrage } from '@/lib/anfrage-mail';
 import { clientIp, rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 
@@ -112,7 +112,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const produkt =
     produktSchluessel === UNENTSCHIEDEN
       ? 'Weiß noch nicht'
-      : (PRODUCT_BY_KEY.get(produktSchluessel)?.label ?? '');
+      : (kategorieLabel(produktSchluessel) ?? '');
   if (!produkt) {
     return NextResponse.json({ error: 'Unbekanntes Produkt.' }, { status: 400, headers });
   }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { nachfragen, type Marke } from '@/lib/markenkanal';
-import type { ProductCard } from '@/lib/products';
+import { kategorieAus, type AnfrageKategorie } from '@/lib/products';
 
 const MAX_LOGO_BYTES = 5_000_000;
 const ERLAUBTE_TYPEN = ['image/png', 'image/jpeg', 'image/svg+xml'];
@@ -24,7 +24,7 @@ const UNENTSCHIEDEN = 'unklar';
 /** Kurz unter den Ziffern, damit man weiss wo man steht. */
 const SCHRITTMARKEN = ['Produkt', 'Design & Menge', 'Kontakt'] as const;
 /** Die eigentliche Frage des Schritts, als Ueberschrift darunter. */
-const SCHRITTFRAGEN = ['Um welche Socke gehts?', 'Design & Stückzahl', 'Kontakt Daten'] as const;
+const SCHRITTFRAGEN = ['Um welches Produkt geht es?', 'Design & Stückzahl', 'Kontakt Daten'] as const;
 
 type Schritt = 1 | 2 | 3;
 
@@ -40,12 +40,12 @@ function mengeText(wert: number): string {
 }
 
 export default function Anfrage({
-  products,
+  kategorien,
   eingebettet = false,
   fallbackMail,
   datenschutz,
 }: {
-  products: ProductCard[];
+  kategorien: readonly AnfrageKategorie[];
   eingebettet?: boolean;
   fallbackMail: string;
   datenschutz: string;
@@ -89,7 +89,10 @@ export default function Anfrage({
       setLogo((alt) => alt ?? marke.logo);
       setLogoName((alt) => alt ?? 'Logo aus dem Konfigurator');
     }
-    if (marke.produkt) setProdukt((alt) => alt || marke.produkt!);
+    // Der Konfigurator nennt seine Render-Vorlage, das Formular fuehrt
+    // Kategorien - eine Skisocke gehoert zu den Spezialsocken.
+    const kategorie = kategorieAus(marke.produkt);
+    if (kategorie) setProdukt((alt) => alt || kategorie);
     if (marke.firma || marke.logo) setAusKonfigurator(true);
   }, []);
 
@@ -226,7 +229,8 @@ export default function Anfrage({
         <div className="b2b-form__fertig">
           <Ueberschrift className="b2b-form__titel">Danke, deine Anfrage ist da.</Ueberschrift>
           <p className="b2b-form__lead">
-            Wir melden uns innerhalb eines Werktags mit einem Vorschlag bei dir.
+            Innerhalb eines Werktags meldet sich jemand aus dem Team — mit Vorschlag, Preis
+            und Zeitplan.
           </p>
         </div>
       </section>
@@ -300,11 +304,11 @@ export default function Anfrage({
         {/* ---------- Schritt 1 ---------- */}
         <div className={stufe(1)}>
           <p className="b2b-form__hinweis">
-            Noch unentschieden? Wir beraten dich zum passenden Modell — die Wahl hier legt
-            nichts fest.
+            Die Wahl legt nichts fest. Noch unentschieden? Wir beraten dich zum passenden
+            Modell.
           </p>
           <div className="b2b-form__kacheln">
-            {products.map((p) => (
+            {kategorien.map((p) => (
               <button
                 key={p.key}
                 type="button"
@@ -316,7 +320,7 @@ export default function Anfrage({
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.preview} alt="" width={480} height={480} />
+                <img src={p.vorschau} alt="" width={480} height={480} />
                 <span className="b2b-form__kachelname">{p.label}</span>
                 <span className="b2b-form__punkt" aria-hidden="true" />
               </button>
@@ -387,7 +391,9 @@ export default function Anfrage({
                     <path d="M12 3v13" />
                   </svg>
                   <span className="b2b-form__ablagetitel">Drag &amp; Drop</span>
-                  <span className="b2b-form__ablagehinweis">PNG, JPG oder SVG, bis 5 MB</span>
+                  <span className="b2b-form__ablagehinweis">
+                    Hierher ziehen oder klicken &middot; PNG, JPG, SVG bis 5 MB
+                  </span>
                 </button>
               )}
 
@@ -434,8 +440,8 @@ export default function Anfrage({
                 ))}
               </div>
               <p className="b2b-form__notiz">
-                Gesamtmenge über alle Größen. Produziert wird ab 100 Paar <strong>je Größe</strong>{' '}
-                — passt das nicht, finden wir im Gespräch einen Weg.
+                <strong>Ab 100 Paar je Größe.</strong> Die Zahl oben ist die Gesamtmenge über
+                alle Größen — passt sie nicht, finden wir im Gespräch einen Weg.
               </p>
             </div>
           </div>
