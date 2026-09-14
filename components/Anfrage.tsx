@@ -7,8 +7,17 @@ import type { ProductCard } from '@/lib/products';
 const MAX_LOGO_BYTES = 5_000_000;
 const ERLAUBTE_TYPEN = ['image/png', 'image/jpeg', 'image/svg+xml'];
 
-/** Gesamtmenge, nicht Menge pro Groesse. Zu kleine Mengen werden nicht blockiert. */
-const MENGEN = [100, 250, 500, 1000, 2000] as const;
+/**
+ * Gesamtmenge, nicht Menge pro Groesse. Frei einstellbar statt in Rastpunkten -
+ * echte Anfragen liegen selten genau auf einer runden Zahl. Zu kleine Mengen
+ * blockieren nicht, sie werden im Gespraech hochgehandelt.
+ */
+const MENGE_MIN = 100;
+const MENGE_MAX = 5000;
+const MENGE_SCHRITT = 50;
+const MENGE_START = 500;
+/** Nur Beschriftung unter dem Regler, keine Rastpunkte. */
+const MENGE_MARKEN = [100, 1000, 2000, 3000, 5000] as const;
 
 const UNENTSCHIEDEN = 'unklar';
 
@@ -25,18 +34,21 @@ function melde(was: 'hoehe' | 'gesendet' | 'frage-marke', hoehe?: number) {
   window.parent.postMessage({ typ: 'occulto-anfrage', was, hoehe }, '*');
 }
 
-function mengeText(menge: number): string {
-  return menge >= 2000 ? `${menge}+` : String(menge);
+function mengeText(wert: number): string {
+  const zahl = wert.toLocaleString('de-DE');
+  return wert >= MENGE_MAX ? `${zahl}+` : zahl;
 }
 
 export default function Anfrage({
   products,
   eingebettet = false,
   fallbackMail,
+  datenschutz,
 }: {
   products: ProductCard[];
   eingebettet?: boolean;
   fallbackMail: string;
+  datenschutz: string;
 }) {
   const [schritt, setSchritt] = useState<Schritt>(1);
   // Weiter als hierher war der Besucher noch nie - vorwaerts springen darf er
@@ -48,7 +60,7 @@ export default function Anfrage({
   const [logo, setLogo] = useState<string | null>(null);
   const [logoName, setLogoName] = useState<string | null>(null);
   const [ohneLogo, setOhneLogo] = useState(false);
-  const [mengeIndex, setMengeIndex] = useState(1);
+  const [menge, setMenge] = useState(MENGE_START);
 
   const [firma, setFirma] = useState('');
   const [person, setPerson] = useState('');
@@ -59,6 +71,9 @@ export default function Anfrage({
 
   const [ausKonfigurator, setAusKonfigurator] = useState(false);
   const [fehler, setFehler] = useState('');
+  // Der Rueckfallweg per Mail hilft nur, wenn das Absenden scheitert - bei einem
+  // leeren Pflichtfeld waere er unsinnig.
+  const [versandFehler, setVersandFehler] = useState(false);
   const [sendet, setSendet] = useState(false);
   const [gesendet, setGesendet] = useState(false);
 
@@ -94,14 +109,19 @@ export default function Anfrage({
 
   /* ---------- Logo ---------- */
 
+  const meldung = useCallback((text: string, ausVersand = false) => {
+    setFehler(text);
+    setVersandFehler(text !== '' && ausVersand);
+  }, []);
+
   const nimmDatei = useCallback((f: File | undefined | null) => {
     if (!f) return;
     if (!ERLAUBTE_TYPEN.includes(f.type)) {
-      setFehler('Bitte PNG, JPG oder SVG.');
+      meldung('Bitte PNG, JPG oder SVG.');
       return;
     }
     if (f.size > MAX_LOGO_BYTES) {
-      setFehler('Die Datei ist zu groß (maximal 5 MB).');
+      meldung('Die Datei ist zu groß (maximal 5 MB).');
       return;
     }
     const leser = new FileReader();
@@ -109,11 +129,11 @@ export default function Anfrage({
       setLogo(String(leser.result));
       setLogoName(f.name);
       setOhneLogo(false);
-      setFehler('');
+      meldung('');
     };
-    leser.onerror = () => setFehler('Die Datei ließ sich nicht lesen.');
+    leser.onerror = () => meldung('Die Datei ließ sich nicht lesen.');
     leser.readAsDataURL(f);
-  }, []);
+  }, [meldung]);
 
   /* ---------- Schritte ---------- */
 
@@ -125,14 +145,14 @@ export default function Anfrage({
 
   function weiter() {
     if (!schrittOk[schritt]) {
-      setFehler(
+      meldung(
         schritt === 1
           ? 'Bitte wähl ein Produkt oder „Weiß ich noch nicht“.'
           : 'Bitte lade ein Logo hoch oder wähl „Nein, noch nicht“.',
       );
       return;
     }
-    setFehler('');
+    meldung('');
     const naechster = (schritt === 3 ? 3 : schritt + 1) as Schritt;
     setSchritt(naechster);
     setWeiteste((w) => (naechster > w ? naechster : w));
@@ -140,13 +160,13 @@ export default function Anfrage({
   }
 
   function zurueck() {
-    setFehler('');
+    meldung('');
     setSchritt((s) => (s === 1 ? 1 : ((s - 1) as Schritt)));
   }
 
   function springe(ziel: Schritt) {
     if (ziel > weiteste) return;
-    setFehler('');
+    meldung('');
     setSchritt(ziel);
   }
 
@@ -154,19 +174,19 @@ export default function Anfrage({
     event.preventDefault();
     if (sendet) return;
     if (!schrittOk[3]) {
-      setFehler('Bitte fülle Firma, Ansprechpartner und E-Mail aus und stimme dem Datenschutz zu.');
+      meldung('Bitte fülle Firma, Ansprechpartner und E-Mail aus und stimme dem Datenschutz zu.');
       return;
     }
 
     setSendet(true);
-    setFehler('');
+    meldung('');
     try {
       const antwort = await fetch('/api/anfrage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           produkt,
-          menge: MENGEN[mengeIndex],
+          menge,
           logo: ohneLogo ? null : logo,
           logoName: ohneLogo ? null : logoName,
           firma,
@@ -185,7 +205,7 @@ export default function Anfrage({
       // haengt am Seitenaufruf der Danke-Seite.
       melde('gesendet');
     } catch (err) {
-      setFehler(err instanceof Error ? err.message : 'Die Anfrage kam nicht durch.');
+      meldung(err instanceof Error ? err.message : 'Die Anfrage kam nicht durch.', true);
     } finally {
       setSendet(false);
     }
@@ -251,6 +271,20 @@ export default function Anfrage({
 
       <h3 className="b2b-form__frage">{SCHRITTFRAGEN[schritt - 1]}</h3>
 
+      {/* Fest reservierte Zeile direkt unter der Frage: dort schaut man nach dem
+          Klick hin, und die Hoehe des Formulars aendert sich nicht, wenn eine
+          Meldung erscheint. Vorher stand sie ganz unten und machte den Kasten
+          bei jedem Fehler laenger. */}
+      <p className={fehler ? 'b2b-form__meldung ist-fehler' : 'b2b-form__meldung'} role="alert">
+        {fehler}
+        {fehler && versandFehler && (
+          <>
+            {' '}
+            <a href={`mailto:${fallbackMail}`}>Schreib uns direkt: {fallbackMail}</a>
+          </>
+        )}
+      </p>
+
       {ausKonfigurator && (
         <p className="b2b-form__uebernommen">
           Aus dem Konfigurator übernommen{firma && `: ${firma}`}
@@ -275,7 +309,7 @@ export default function Anfrage({
                 aria-pressed={produkt === p.key}
                 onClick={() => {
                   setProdukt(p.key);
-                  setFehler('');
+                  meldung('');
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -294,7 +328,7 @@ export default function Anfrage({
               aria-pressed={produkt === UNENTSCHIEDEN}
               onClick={() => {
                 setProdukt(UNENTSCHIEDEN);
-                setFehler('');
+                meldung('');
               }}
             >
               <span className="b2b-form__fragezeichen" aria-hidden="true">
@@ -368,7 +402,7 @@ export default function Anfrage({
                   checked={ohneLogo}
                   onChange={(e) => {
                     setOhneLogo(e.target.checked);
-                    setFehler('');
+                    meldung('');
                   }}
                 />
                 <span>Nein, noch nicht — wir entwerfen etwas für dich.</span>
@@ -376,25 +410,24 @@ export default function Anfrage({
             </div>
 
             <div>
-              <p className="b2b-form__unterfrage">
-                Gib die voraussichtliche Stückzahl an (100 – 2000+)
+              <p className="b2b-form__unterfrage">Gib die voraussichtliche Stückzahl an</p>
+              <p className="b2b-form__mengenwert">
+                {mengeText(menge)} <span>Paar</span>
               </p>
               <input
                 type="range"
-                min={0}
-                max={MENGEN.length - 1}
-                step={1}
-                value={mengeIndex}
-                onChange={(e) => setMengeIndex(Number(e.target.value))}
+                min={MENGE_MIN}
+                max={MENGE_MAX}
+                step={MENGE_SCHRITT}
+                value={menge}
+                onChange={(e) => setMenge(Number(e.target.value))}
                 aria-label="Voraussichtliche Gesamtmenge"
-                aria-valuetext={`${mengeText(MENGEN[mengeIndex]!)} Stück`}
+                aria-valuetext={`${mengeText(menge)} Paar`}
                 className="b2b-form__regler"
               />
               <div className="b2b-form__skala" aria-hidden="true">
-                {MENGEN.map((m, i) => (
-                  <span key={m} className={i === mengeIndex ? 'ist-aktiv' : undefined}>
-                    {mengeText(m)}
-                  </span>
+                {MENGE_MARKEN.map((m) => (
+                  <span key={m}>{mengeText(m)}</span>
                 ))}
               </div>
               <p className="b2b-form__notiz">
@@ -469,7 +502,7 @@ export default function Anfrage({
               />
               <span>
                 Ich stimme der Verarbeitung meiner Angaben zu (
-                <a href="/policies/privacy-policy" target="_blank" rel="noreferrer">
+                <a href={datenschutz} target="_blank" rel="noreferrer">
                   Datenschutz
                 </a>
                 ). *
@@ -478,12 +511,6 @@ export default function Anfrage({
           </div>
         </div>
         </div>
-
-        {fehler && (
-          <p className="b2b-form__fehler" role="alert">
-            {fehler} <a href={`mailto:${fallbackMail}`}>Oder schreib uns direkt: {fallbackMail}</a>
-          </p>
-        )}
 
         <div className="b2b-form__leiste">
           {schritt > 1 ? (

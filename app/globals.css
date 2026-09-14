@@ -929,6 +929,19 @@ input {
   accent-color: rgb(var(--text-color));
 }
 
+.b2b-form__mengenwert {
+  margin: 0 0 4px;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.b2b-form__mengenwert span {
+  font-size: 15px;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
 .b2b-form__regler {
   width: 100%;
   margin: 8px 0 0;
@@ -999,16 +1012,21 @@ input {
 
 /* --- Fehler und Knopfleiste --- */
 
-.b2b-form__fehler {
-  margin: 22px 0 0;
-  padding: 12px 14px;
-  border: 1px solid rgb(var(--danger) / 0.4);
-  border-radius: 6px;
-  color: rgb(var(--danger));
-  font-size: 14px;
+/* Immer da, auch leer: so aendert eine Meldung die Hoehe des Formulars nicht.
+   Zwei Zeilen Platz, weil die Versandmeldung mit Mailadresse laenger ist. */
+.b2b-form__meldung {
+  margin: -8px 0 14px;
+  min-height: 2.6em;
+  font-size: 13px;
+  line-height: 1.3;
 }
 
-.b2b-form__fehler a {
+.b2b-form__meldung.ist-fehler {
+  color: rgb(var(--danger));
+  font-weight: 600;
+}
+
+.b2b-form__meldung a {
   color: inherit;
 }
 

@@ -17,7 +17,10 @@ const EMPFAENGER = process.env.ANFRAGE_EMPFAENGER || 'nicolas.grinninger@occulto
 // Adresse des Kontoinhabers - fuer den Echtbetrieb muss occulto.de dort stehen.
 const ABSENDER = process.env.ANFRAGE_ABSENDER || 'Occulto B2B <onboarding@resend.dev>';
 
-const MENGEN = new Set([100, 250, 500, 1000, 2000]);
+// Frei einstellbar im Formular, deshalb hier ein Bereich statt einer Liste.
+// Die Grenzen sind grosszuegig: sie sollen Unsinn abfangen, nicht verhandeln.
+const MENGE_MIN = 100;
+const MENGE_MAX = 5000;
 const UNENTSCHIEDEN = 'unklar';
 
 /** Zeichen, die in HTML eine Bedeutung haetten. Die Mail baut HTML aus Nutzertext. */
@@ -131,9 +134,18 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'Unbekanntes Produkt.' }, { status: 400, headers });
   }
 
-  const menge = typeof roh.menge === 'number' && MENGEN.has(roh.menge) ? roh.menge : null;
+  const menge =
+    typeof roh.menge === 'number' &&
+    Number.isInteger(roh.menge) &&
+    roh.menge >= MENGE_MIN &&
+    roh.menge <= MENGE_MAX
+      ? roh.menge
+      : null;
   if (menge === null) {
-    return NextResponse.json({ error: 'Unbekannte Stückzahl.' }, { status: 400, headers });
+    return NextResponse.json(
+      { error: `Stückzahl muss zwischen ${MENGE_MIN} und ${MENGE_MAX} liegen.` },
+      { status: 400, headers },
+    );
   }
 
   /* ---------- Logo ---------- */
@@ -162,7 +174,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     zeile('E-Mail', mail) +
     zeile('Telefon', telefon) +
     zeile('Produkt', produkt) +
-    zeile('Menge gesamt', menge >= 2000 ? `${menge}+` : String(menge)) +
+    zeile(
+      'Menge gesamt',
+      menge >= MENGE_MAX ? `${menge}+ Paar` : `${menge} Paar`,
+    ) +
     zeile('Logo', anhang ? `als Anhang: ${anhang.filename}` : 'noch keins') +
     zeile('Aus dem Konfigurator', ausKonfigurator ? 'ja' : 'nein') +
     zeile('Nachricht', nachricht) +
