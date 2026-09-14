@@ -398,7 +398,6 @@ export default function Configurator({
           <button
             type="button"
             className="b2b-konfig__cta"
-            disabled={!hasResult}
             onClick={() => {
               // Eingebettet springt die Landingpage zum Anfrageblock; allein
               // stehend gibt es dort noch nichts, also nur ein Hinweis.

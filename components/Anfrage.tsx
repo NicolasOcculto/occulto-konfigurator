@@ -74,6 +74,9 @@ export default function Anfrage({
   // Der Rueckfallweg per Mail hilft nur, wenn das Absenden scheitert - bei einem
   // leeren Pflichtfeld waere er unsinnig.
   const [versandFehler, setVersandFehler] = useState(false);
+  // Erst nach dem ersten Absendeversuch markieren - vorher waere die halbe
+  // Maske rot, bevor jemand etwas tippen konnte.
+  const [gepruft, setGepruft] = useState(false);
   const [sendet, setSendet] = useState(false);
   const [gesendet, setGesendet] = useState(false);
 
@@ -177,7 +180,8 @@ export default function Anfrage({
     event.preventDefault();
     if (sendet) return;
     if (!schrittOk[3]) {
-      meldung('Bitte fülle Firma, Ansprechpartner und E-Mail aus und stimme dem Datenschutz zu.');
+      setGepruft(true);
+      meldung('Bitte fülle die rot markierten Felder aus.');
       return;
     }
 
@@ -220,6 +224,10 @@ export default function Anfrage({
   // Rasterfeld. Dadurch ist der Container so hoch wie der hoechste von ihnen -
   // bei jeder Breite, ohne gemessene Festwerte. Die inaktiven sind unsichtbar
   // und damit auch aus Tabreihenfolge und Vorlesereihenfolge draussen.
+  /** Rote Umrandung fuer ein leeres Pflichtfeld, sobald geprueft wurde. */
+  const feld = (gefuellt: boolean) =>
+    gepruft && !gefuellt ? 'b2b-form__feld ist-fehlerhaft' : 'b2b-form__feld';
+
   const stufe = (n: Schritt) =>
     n === schritt ? 'b2b-form__stufeninhalt' : 'b2b-form__stufeninhalt ist-verborgen';
 
@@ -451,7 +459,7 @@ export default function Anfrage({
         <div className={stufe(3)}>
           <div className="b2b-form__felder">
             <div className="b2b-form__reihe">
-              <label className="b2b-form__feld">
+              <label className={feld(firma.trim() !== '')}>
                 <span>Firma/Organisation/Event*</span>
                 <input
                   value={firma}
@@ -460,7 +468,7 @@ export default function Anfrage({
                   required
                 />
               </label>
-              <label className="b2b-form__feld">
+              <label className={feld(person.trim() !== '')}>
                 <span>Ansprechpartner*</span>
                 <input
                   value={person}
@@ -472,7 +480,7 @@ export default function Anfrage({
             </div>
 
             <div className="b2b-form__reihe">
-              <label className="b2b-form__feld">
+              <label className={feld(mail.trim() !== '')}>
                 <span>Email*</span>
                 <input
                   type="email"
@@ -502,7 +510,13 @@ export default function Anfrage({
               />
             </label>
 
-            <label className="b2b-form__kasten">
+            <label
+              className={
+                gepruft && !einwilligung
+                  ? 'b2b-form__kasten ist-fehlerhaft'
+                  : 'b2b-form__kasten'
+              }
+            >
               <input
                 type="checkbox"
                 checked={einwilligung}

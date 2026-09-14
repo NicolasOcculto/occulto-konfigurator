@@ -503,10 +503,11 @@ input {
 
 .b2b-konfig__wahlknopf span {
   display: block;
-  margin-top: 4px;
-  font-size: 11px;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.2;
-  opacity: 0.65;
+  opacity: 0.85;
 }
 
 .b2b-konfig__wahlknopf.ist-aktiv span {
@@ -574,7 +575,7 @@ input {
   }
 
   .b2b-konfig__wahlknopf span {
-    font-size: 10px;
+    font-size: 12px;
   }
 }
 
@@ -853,6 +854,8 @@ input {
 }
 
 .b2b-form__kachelname {
+  font-size: 16px;
+  font-weight: 700;
   line-height: 1.25;
   /* Zwei Zeilen Platz, damit die Wahlkreise darunter auf einer Linie bleiben,
      wenn ein Name umbricht. */
@@ -1080,8 +1083,52 @@ input {
 }
 
 .b2b-form__meldung.ist-fehler {
-  color: rgb(var(--danger));
-  font-weight: 600;
+  align-self: center;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid rgb(var(--akzent));
+  border-radius: 6px;
+  background: rgb(var(--akzent) / 0.06);
+  color: rgb(var(--akzent));
+  font-weight: 700;
+  text-align: left;
+  position: relative;
+}
+
+/* Ausrufezeichen als Zeichen, nicht als Bild: kein zusaetzlicher Ladevorgang,
+   und es bleibt bei jeder Schriftgroesse mittig. */
+.b2b-form__meldung.ist-fehler::before {
+  content: '!';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgb(var(--akzent));
+  color: rgb(var(--weiss));
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* Leere Pflichtfelder rot umranden - erst nach dem ersten Absendeversuch. */
+.b2b-form__feld.ist-fehlerhaft input,
+.b2b-form__feld.ist-fehlerhaft textarea {
+  border-color: rgb(var(--akzent));
+  background: rgb(var(--akzent) / 0.04);
+}
+
+.b2b-form__feld.ist-fehlerhaft > span,
+.b2b-form__kasten.ist-fehlerhaft {
+  color: rgb(var(--akzent));
+}
+
+.b2b-form__kasten.ist-fehlerhaft input {
+  outline: 2px solid rgb(var(--akzent));
+  outline-offset: 2px;
 }
 
 .b2b-form__meldung a {
