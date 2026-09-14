@@ -686,6 +686,18 @@ input {
   font-size: 13px;
 }
 
+/* Alle drei Schritte gleich hoch. Der Wert ist der hoechste gemessene Inhalt
+   (Kontaktdaten); ohne ihn sprang die Knopfleiste bei jedem Weiter. */
+.b2b-form__inhalt {
+  min-height: 311px;
+}
+
+.b2b-form__hinweis {
+  margin: 0 0 14px;
+  font-size: 14px;
+  opacity: 0.65;
+}
+
 /* --- Schritt 1: Produktkacheln --- */
 
 .b2b-form__kacheln {
@@ -718,7 +730,9 @@ input {
 .b2b-form__fragezeichen {
   width: 100%;
   height: auto;
-  aspect-ratio: 1 / 1;
+  /* Hochformat: die Ware ist hochformatig, und Schritt 1 soll seinen Platz
+     ausfuellen statt halb leer zu stehen. */
+  aspect-ratio: 4 / 5;
   object-fit: cover;
   border: 1px solid rgb(var(--border-color));
   border-radius: 6px;
@@ -875,7 +889,7 @@ input {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 12px;
   font-size: 14px;
   cursor: pointer;
 }
@@ -918,13 +932,13 @@ input {
 .b2b-form__felder {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 11px;
 }
 
 .b2b-form__reihe {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 14px;
+  gap: 11px;
 }
 
 .b2b-form__feld {
@@ -933,14 +947,14 @@ input {
 
 .b2b-form__feld > span {
   display: block;
-  margin-bottom: 5px;
-  font-size: 15px;
+  margin-bottom: 4px;
+  font-size: 14px;
 }
 
 .b2b-form__feld input,
 .b2b-form__feld textarea {
   width: 100%;
-  padding: 11px 13px;
+  padding: 9px 12px;
   border: 1px solid rgb(var(--text-color) / 0.35);
   border-radius: 6px;
   background: rgb(var(--background));

@@ -232,8 +232,14 @@ export default function Anfrage({
       )}
 
       <form onSubmit={senden} noValidate>
+        <div className="b2b-form__inhalt">
         {/* ---------- Schritt 1 ---------- */}
         {schritt === 1 && (
+          <>
+          <p className="b2b-form__hinweis">
+            Noch unentschieden? Wir beraten dich zum passenden Modell — die Wahl hier legt
+            nichts fest.
+          </p>
           <div className="b2b-form__kacheln">
             {products.map((p) => (
               <button
@@ -272,6 +278,7 @@ export default function Anfrage({
               <span className="b2b-form__punkt" aria-hidden="true" />
             </button>
           </div>
+          </>
         )}
 
         {/* ---------- Schritt 2 ---------- */}
@@ -422,7 +429,7 @@ export default function Anfrage({
             <label className="b2b-form__feld">
               <span>Nachricht (Optional)</span>
               <textarea
-                rows={3}
+                rows={2}
                 value={nachricht}
                 onChange={(e) => setNachricht(e.target.value)}
               />
@@ -436,16 +443,16 @@ export default function Anfrage({
                 required
               />
               <span>
-                Ich bin einverstanden, dass meine Angaben zur Bearbeitung der Anfrage gespeichert
-                werden. Mehr in der{' '}
+                Ich stimme der Verarbeitung meiner Angaben zu (
                 <a href="/policies/privacy-policy" target="_blank" rel="noreferrer">
-                  Datenschutzerklärung
+                  Datenschutz
                 </a>
-                . *
+                ). *
               </span>
             </label>
           </div>
         )}
+        </div>
 
         {fehler && (
           <p className="b2b-form__fehler" role="alert">
