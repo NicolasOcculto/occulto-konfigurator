@@ -39,6 +39,9 @@ export default function Anfrage({
   fallbackMail: string;
 }) {
   const [schritt, setSchritt] = useState<Schritt>(1);
+  // Weiter als hierher war der Besucher noch nie - vorwaerts springen darf er
+  // deshalb nur bis hier, sonst uebergeht er die Pruefungen dazwischen.
+  const [weiteste, setWeiteste] = useState<Schritt>(1);
 
   const [produkt, setProdukt] = useState<string>('');
 
@@ -130,13 +133,21 @@ export default function Anfrage({
       return;
     }
     setFehler('');
-    setSchritt((s) => (s === 3 ? 3 : ((s + 1) as Schritt)));
+    const naechster = (schritt === 3 ? 3 : schritt + 1) as Schritt;
+    setSchritt(naechster);
+    setWeiteste((w) => (naechster > w ? naechster : w));
     kopf.current?.scrollIntoView({ block: 'nearest' });
   }
 
   function zurueck() {
     setFehler('');
     setSchritt((s) => (s === 1 ? 1 : ((s - 1) as Schritt)));
+  }
+
+  function springe(ziel: Schritt) {
+    if (ziel > weiteste) return;
+    setFehler('');
+    setSchritt(ziel);
   }
 
   async function senden(event: React.FormEvent) {
@@ -207,14 +218,23 @@ export default function Anfrage({
             const nummer = (i + 1) as Schritt;
             const zustand =
               nummer < schritt ? ' ist-fertig' : nummer === schritt ? ' ist-aktiv' : '';
+            const erreichbar = nummer <= weiteste;
             return (
               <li key={name} className={`b2b-form__stufe${zustand}`}>
-                <span
+                <button
+                  type="button"
                   className="b2b-form__kreis"
+                  onClick={() => springe(nummer)}
+                  disabled={!erreichbar}
                   aria-current={nummer === schritt ? 'step' : undefined}
+                  aria-label={
+                    erreichbar
+                      ? `Zu Schritt ${nummer}: ${name}`
+                      : `Schritt ${nummer}: ${name}, noch nicht erreichbar`
+                  }
                 >
                   {nummer}
-                </span>
+                </button>
                 <span className="b2b-form__stufenname">{name}</span>
               </li>
             );

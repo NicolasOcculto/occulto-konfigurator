@@ -650,6 +650,20 @@ input {
   color: rgb(var(--background));
 }
 
+.b2b-form__kreis:disabled {
+  cursor: default;
+}
+
+.b2b-form__kreis:not(:disabled):hover {
+  border-color: rgb(var(--text-color));
+  color: rgb(var(--text-color));
+}
+
+.b2b-form__kreis:focus-visible {
+  outline: 2px solid rgb(var(--button-background));
+  outline-offset: 2px;
+}
+
 .b2b-form__stufenname {
   font-size: 13px;
   opacity: 0.5;
