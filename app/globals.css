@@ -93,10 +93,25 @@ input {
 }
 
 .b2b-konfig__titel {
-  margin: 0 0 12px;
-  font-size: clamp(26px, 2.8vw, 40px);
+  position: relative;
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  font-size: clamp(30px, 3.4vw, 52px);
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.02;
+  text-transform: uppercase;
+}
+
+/* Akzentstrich wie im Anfrageformular - die beiden Rahmen gehoeren zusammen. */
+.b2b-konfig__titel::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 46px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgb(var(--akzent));
 }
 
 .b2b-konfig__text {
@@ -445,6 +460,7 @@ input {
   position: absolute;
   right: 10px;
   bottom: 10px;
+  background: rgb(var(--akzent));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -497,20 +513,21 @@ input {
 
 .b2b-konfig__wahlknopf.ist-aktiv img {
   opacity: 1;
-  border-color: rgb(var(--text-color));
-  box-shadow: 0 0 0 1px rgb(var(--text-color));
+  border-color: rgb(var(--akzent));
+  box-shadow: 0 0 0 2px rgb(var(--akzent));
 }
 
 .b2b-konfig__wahlknopf span {
   display: block;
-  margin-top: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  margin-top: 7px;
+  font-size: 15px;
+  font-weight: 700;
   line-height: 1.2;
   opacity: 0.85;
 }
 
 .b2b-konfig__wahlknopf.ist-aktiv span {
+  color: rgb(var(--akzent));
   font-weight: 700;
   opacity: 1;
 }
@@ -528,9 +545,9 @@ input {
 
 .b2b-konfig__bildtitel {
   margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.15;
 }
 
 .b2b-konfig__bildtext {
@@ -540,9 +557,10 @@ input {
 }
 
 .b2b-konfig__bildpreis {
-  margin: 4px 0 0;
-  font-size: 14px;
-  opacity: 0.75;
+  margin: 5px 0 0;
+  color: rgb(var(--akzent));
+  font-size: 15px;
+  font-weight: 700;
 }
 
 @media screen and (max-width: 899px) {
@@ -1068,51 +1086,7 @@ input {
   box-shadow: 0 0 0 3px rgb(var(--akzent) / 0.15);
 }
 
-/* --- Fehler und Knopfleiste --- */
 
-/* Teilt sich die Zeile mit der Frage des Schritts. Dadurch braucht sie keinen
-   reservierten Platz: erscheint eine Meldung, wird nichts laenger, und wenn
-   keine da ist, steht auch kein leeres Loch herum. */
-.b2b-form__meldung {
-  margin: 0;
-  flex: 0 1 auto;
-  max-width: 52%;
-  text-align: right;
-  font-size: 14px;
-  line-height: 1.35;
-}
-
-.b2b-form__meldung.ist-fehler {
-  align-self: center;
-  padding: 8px 12px 8px 32px;
-  border: 1px solid rgb(var(--akzent));
-  border-radius: 6px;
-  background: rgb(var(--akzent) / 0.06);
-  color: rgb(var(--akzent));
-  font-weight: 700;
-  text-align: left;
-  position: relative;
-}
-
-/* Ausrufezeichen als Zeichen, nicht als Bild: kein zusaetzlicher Ladevorgang,
-   und es bleibt bei jeder Schriftgroesse mittig. */
-.b2b-form__meldung.ist-fehler::before {
-  content: '!';
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgb(var(--akzent));
-  color: rgb(var(--weiss));
-  font-size: 12px;
-  line-height: 1;
-}
 
 /* Leere Pflichtfelder rot umranden - erst nach dem ersten Absendeversuch. */
 .b2b-form__feld.ist-fehlerhaft input,
@@ -1131,9 +1105,6 @@ input {
   outline-offset: 2px;
 }
 
-.b2b-form__meldung a {
-  color: inherit;
-}
 
 .b2b-form__leiste {
   display: flex;
@@ -1196,11 +1167,6 @@ input {
     display: block;
   }
 
-  .b2b-form__meldung {
-    max-width: none;
-    text-align: left;
-    margin-top: 6px;
-  }
 }
 
 @media screen and (max-width: 640px) {
@@ -1234,4 +1200,105 @@ input {
     min-width: 0;
     flex: 1 1 auto;
   }
+}
+
+/* --- Hinweisfeld ---------------------------------------------------------
+   Schwebt mittig ueber der Karte statt am Rand zu stehen, und laesst sich
+   wegklicken. Als Overlay aendert es die Hoehe des Formulars nicht - das war
+   der Grund, warum die Meldung vorher in einer reservierten Zeile stand. */
+
+.b2b-form__karte {
+  position: relative;
+}
+
+.b2b-form__hinweisfeld {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: min(560px, calc(100% - 32px));
+  padding: 12px 12px 12px 14px;
+  border: 1px solid rgb(var(--akzent));
+  border-radius: 8px;
+  background: rgb(var(--weiss));
+  box-shadow: 0 8px 24px -10px rgb(var(--akzent) / 0.45);
+  color: rgb(var(--akzent));
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.b2b-form__hinweisfeld p {
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.b2b-form__hinweisfeld a {
+  color: inherit;
+}
+
+.b2b-form__hinweiszeichen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: rgb(var(--akzent));
+  color: rgb(var(--weiss));
+  font-size: 14px;
+  line-height: 1;
+}
+
+.b2b-form__hinweiszu {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.b2b-form__hinweiszu:hover {
+  background: rgb(var(--akzent) / 0.1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .b2b-form__hinweisfeld {
+    animation: b2b-hinweis-ein 0.22s ease-out;
+  }
+}
+
+@keyframes b2b-hinweis-ein {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Ablageflaeche und Haekchen in Schritt 2, wenn beide Wege offen geblieben sind. */
+.b2b-form__ablage.ist-fehlerhaft {
+  border-color: rgb(var(--akzent));
+  border-style: solid;
+  background: rgb(var(--akzent) / 0.04);
+}
+
+.b2b-form__kasten.ist-fehlerhaft {
+  color: rgb(var(--akzent));
+  font-weight: 600;
 }

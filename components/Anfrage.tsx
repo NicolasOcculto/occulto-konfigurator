@@ -74,9 +74,9 @@ export default function Anfrage({
   // Der Rueckfallweg per Mail hilft nur, wenn das Absenden scheitert - bei einem
   // leeren Pflichtfeld waere er unsinnig.
   const [versandFehler, setVersandFehler] = useState(false);
-  // Erst nach dem ersten Absendeversuch markieren - vorher waere die halbe
-  // Maske rot, bevor jemand etwas tippen konnte.
-  const [gepruft, setGepruft] = useState(false);
+  // In welchem Schritt die Pruefung gescheitert ist. Erst danach wird rot
+  // markiert - vorher waere die halbe Maske rot, bevor jemand tippen konnte.
+  const [bemaengelt, setBemaengelt] = useState<Schritt | null>(null);
   const [sendet, setSendet] = useState(false);
   const [gesendet, setGesendet] = useState(false);
 
@@ -151,6 +151,7 @@ export default function Anfrage({
 
   function weiter() {
     if (!schrittOk[schritt]) {
+      setBemaengelt(schritt);
       meldung(
         schritt === 1
           ? 'Bitte wähl ein Produkt oder „Weiß ich noch nicht“.'
@@ -158,6 +159,7 @@ export default function Anfrage({
       );
       return;
     }
+    setBemaengelt(null);
     meldung('');
     const naechster = (schritt === 3 ? 3 : schritt + 1) as Schritt;
     setSchritt(naechster);
@@ -180,7 +182,7 @@ export default function Anfrage({
     event.preventDefault();
     if (sendet) return;
     if (!schrittOk[3]) {
-      setGepruft(true);
+      setBemaengelt(3);
       meldung('Bitte fülle die rot markierten Felder aus.');
       return;
     }
@@ -226,7 +228,10 @@ export default function Anfrage({
   // und damit auch aus Tabreihenfolge und Vorlesereihenfolge draussen.
   /** Rote Umrandung fuer ein leeres Pflichtfeld, sobald geprueft wurde. */
   const feld = (gefuellt: boolean) =>
-    gepruft && !gefuellt ? 'b2b-form__feld ist-fehlerhaft' : 'b2b-form__feld';
+    bemaengelt === 3 && !gefuellt ? 'b2b-form__feld ist-fehlerhaft' : 'b2b-form__feld';
+
+  /** Schritt 2: Ablageflaeche und Haekchen sind die beiden moeglichen Wege. */
+  const logoFehlt = bemaengelt === 2 && !ohneLogo && logo === null;
 
   const stufe = (n: Schritt) =>
     n === schritt ? 'b2b-form__stufeninhalt' : 'b2b-form__stufeninhalt ist-verborgen';
@@ -248,6 +253,30 @@ export default function Anfrage({
   return (
     <section className={eingebettet ? 'b2b-form ist-eingebettet' : 'b2b-form'} id="b2b-anfrage">
       <div className="b2b-form__karte">
+        {fehler && (
+          <div className="b2b-form__hinweisfeld" role="alert">
+            <span className="b2b-form__hinweiszeichen" aria-hidden="true">
+              !
+            </span>
+            <p>
+              {fehler}
+              {versandFehler && (
+                <>
+                  {' '}
+                  <a href={`mailto:${fallbackMail}`}>Schreib uns direkt: {fallbackMail}</a>
+                </>
+              )}
+            </p>
+            <button
+              type="button"
+              className="b2b-form__hinweiszu"
+              onClick={() => meldung('')}
+              aria-label="Hinweis schließen"
+            >
+              &times;
+            </button>
+          </div>
+        )}
       <div ref={kopf}>
         <Ueberschrift className="b2b-form__titel">Anfrage</Ueberschrift>
 
@@ -284,20 +313,6 @@ export default function Anfrage({
 
       <div className="b2b-form__kopfzeile">
         <h3 className="b2b-form__frage">{SCHRITTFRAGEN[schritt - 1]}</h3>
-
-      {/* Fest reservierte Zeile direkt unter der Frage: dort schaut man nach dem
-          Klick hin, und die Hoehe des Formulars aendert sich nicht, wenn eine
-          Meldung erscheint. Vorher stand sie ganz unten und machte den Kasten
-          bei jedem Fehler laenger. */}
-      <p className={fehler ? 'b2b-form__meldung ist-fehler' : 'b2b-form__meldung'} role="alert">
-        {fehler}
-        {fehler && versandFehler && (
-          <>
-            {' '}
-            <a href={`mailto:${fallbackMail}`}>Schreib uns direkt: {fallbackMail}</a>
-          </>
-        )}
-        </p>
       </div>
 
       {ausKonfigurator && (
@@ -375,7 +390,7 @@ export default function Anfrage({
               ) : (
                 <button
                   type="button"
-                  className="b2b-form__ablage"
+                  className={logoFehlt ? 'b2b-form__ablage ist-fehlerhaft' : 'b2b-form__ablage'}
                   onClick={() => datei.current?.click()}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
@@ -413,7 +428,9 @@ export default function Anfrage({
                 onChange={(e) => nimmDatei(e.target.files?.[0])}
               />
 
-              <label className="b2b-form__kasten">
+              <label
+                className={logoFehlt ? 'b2b-form__kasten ist-fehlerhaft' : 'b2b-form__kasten'}
+              >
                 <input
                   type="checkbox"
                   checked={ohneLogo}
@@ -512,7 +529,7 @@ export default function Anfrage({
 
             <label
               className={
-                gepruft && !einwilligung
+                bemaengelt === 3 && !einwilligung
                   ? 'b2b-form__kasten ist-fehlerhaft'
                   : 'b2b-form__kasten'
               }
