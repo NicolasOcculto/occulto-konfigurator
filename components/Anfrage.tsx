@@ -193,6 +193,13 @@ export default function Anfrage({
 
   const Ueberschrift = eingebettet ? 'h2' : 'h1';
 
+  // Alle drei Schritte stehen immer im Baum, uebereinander im selben
+  // Rasterfeld. Dadurch ist der Container so hoch wie der hoechste von ihnen -
+  // bei jeder Breite, ohne gemessene Festwerte. Die inaktiven sind unsichtbar
+  // und damit auch aus Tabreihenfolge und Vorlesereihenfolge draussen.
+  const stufe = (n: Schritt) =>
+    n === schritt ? 'b2b-form__stufeninhalt' : 'b2b-form__stufeninhalt ist-verborgen';
+
   if (gesendet) {
     return (
       <section className={eingebettet ? 'b2b-form ist-eingebettet' : 'b2b-form'} id="b2b-anfrage">
@@ -254,8 +261,7 @@ export default function Anfrage({
       <form onSubmit={senden} noValidate>
         <div className="b2b-form__inhalt">
         {/* ---------- Schritt 1 ---------- */}
-        {schritt === 1 && (
-          <>
+        <div className={stufe(1)}>
           <p className="b2b-form__hinweis">
             Noch unentschieden? Wir beraten dich zum passenden Modell — die Wahl hier legt
             nichts fest.
@@ -298,11 +304,10 @@ export default function Anfrage({
               <span className="b2b-form__punkt" aria-hidden="true" />
             </button>
           </div>
-          </>
-        )}
+        </div>
 
         {/* ---------- Schritt 2 ---------- */}
-        {schritt === 2 && (
+        <div className={stufe(2)}>
           <div className="b2b-form__zwei">
             <div>
               <p className="b2b-form__unterfrage">Hast du schon ein Design oder Logo?</p>
@@ -398,10 +403,10 @@ export default function Anfrage({
               </p>
             </div>
           </div>
-        )}
+        </div>
 
         {/* ---------- Schritt 3 ---------- */}
-        {schritt === 3 && (
+        <div className={stufe(3)}>
           <div className="b2b-form__felder">
             <div className="b2b-form__reihe">
               <label className="b2b-form__feld">
@@ -471,7 +476,7 @@ export default function Anfrage({
               </span>
             </label>
           </div>
-        )}
+        </div>
         </div>
 
         {fehler && (

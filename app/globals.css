@@ -700,10 +700,23 @@ input {
   font-size: 13px;
 }
 
-/* Alle drei Schritte gleich hoch. Der Wert ist der hoechste gemessene Inhalt
-   (Kontaktdaten); ohne ihn sprang die Knopfleiste bei jedem Weiter. */
+/* Alle drei Schritte gleich hoch, ohne gemessene Festwerte: sie liegen alle
+   im selben Rasterfeld uebereinander, also ist der Container so hoch wie der
+   hoechste von ihnen - bei jeder Breite. Ein fester Wert stimmte nur fuer eine
+   Breite: bei 700 px braucht der hoechste Schritt 311, bei 390 px aber 502. */
 .b2b-form__inhalt {
-  min-height: 311px;
+  display: grid;
+}
+
+.b2b-form__stufeninhalt {
+  grid-area: 1 / 1;
+}
+
+/* visibility statt display: der Schritt behaelt seine Groesse und zaehlt damit
+   fuer die Hoehe des Rasters, ist aber aus Tabreihenfolge und Vorlesereihenfolge
+   draussen. */
+.b2b-form__stufeninhalt.ist-verborgen {
+  visibility: hidden;
 }
 
 .b2b-form__hinweis {
