@@ -6,45 +6,44 @@
  * Nicht raten: wer etwas aendert, misst vorher neu.
  */
 :root {
-  /* --- Aus der Theme-Vorschau gemessen (127.0.0.1:9292, Vorlage b2b-2026),
-         an .color-scheme und :root. Kanaltripel wie im Theme, damit sich Alpha
-         mischen laesst - deshalb ueberall rgb(var(--x)). --- */
-  --text-color: 28 28 28;
+  /* Aus der Theme-Vorschau gemessen (127.0.0.1:9292, Vorlage b2b-2026).
+     Kanaltripel wie im Theme, damit sich Alpha mischen laesst - deshalb
+     ueberall rgb(var(--x)). */
   --background: 255 255 255;
-  --border-color: 221 221 221;
-  --button-background: 46 46 45;
-  --button-text-color: 255 255 255;
   --button-border-radius: 0.375rem;
 
-  /* --- Farbklima ---------------------------------------------------------
-     Nicht erfunden, sondern aus Occultos eigenen Fotos gezogen: das
-     Kraftpapier der Banderole liegt bei #9E633D, die Geschenktuete bei
-     #3A210B, Messestand und Firmenevent bei #402711 und #641800. Alle vier
-     teilen dieselbe warme Braunfamilie. Daraus ein zurueckhaltendes Klima:
-     warme Flaechen statt kalter Graustufen, und ein einziger Akzent, der nur
-     dort auftaucht, wo etwas aktiv oder ausgewaehlt ist.
-     Schwarz und Weiss bleiben die Hauptfarben - das ist die Marke. --- */
+  /* --- Farben: Brand Guidelines 2027, Kapitel 05 ------------------------
+     #000000, #2e2e2d, #ffffff und #f6f6f6 als neutrale Basis, #c72a09 als
+     Akzent - gezielt und sparsam. Abgeschrieben, nicht abgeleitet.
 
-  /* Flaechen, von hell nach dunkel */
-  --papier: 252 251 249;
-  --sand: 243 240 235;
-  --sand-tief: 234 229 221;
-  --linie: 226 220 210;
+     Ein frueherer Entwurf zog einen warmen Braunton aus Occultos eigenen
+     Fotos. Der ist raus: die Guidelines geben die Farbe vor. */
+  --schwarz: 0 0 0;
+  --text-color: 46 46 45;
+  --weiss: 255 255 255;
+  --hell: 246 246 246;
+  --akzent: 199 42 9;
 
-  /* Untergrund fuer Produktbilder: warmer Mittelton. Heller geht nicht, die
-     Socken sind weiss; dunkler nicht, die Muetze ist schwarz. */
-  --warengrund: 203 197 188;
+  /* --- Abgeleitet, nicht aus den Guidelines ---
+     Die Palette kennt nur sehr hell und sehr dunkel. Trennlinien und der
+     Untergrund der Produktbilder brauchen Zwischenstufen; beide sind neutrale
+     Abstufungen von #2e2e2d. Der Akzenthauch ist #c72a09 auf Weiss
+     aufgehellt. */
+  --linie: 226 226 225;
+  --warengrund: 207 207 206;
+  --akzent-hauch: 251 235 231;
 
-  --akzent: 158 99 61;
-  --akzent-tief: 122 74 44;
-  --akzent-hauch: 245 236 227;
+  /* Basic Sans ist die Primaerschrift der Guidelines. Der Shop laedt sie ueber
+     das Typekit-Kit wdu6knh (siehe layout.tsx). Greift das Kit auf dieser
+     Domain nicht, faellt sie auf denselben Stack zurueck wie im Theme.
 
-  /* Der Shop laedt basic-sans ueber das Typekit-Kit wdu6knh (siehe layout.tsx).
-     Greift das Kit auf dieser Domain nicht, faellt die Schrift auf denselben
-     Stack zurueck, den das Theme als Fallback fuehrt. */
+     ACHTUNG: das Kit liefert nur 400 und 700. Die Guidelines verlangen Black
+     fuer Headlines und Medium fuer Sublines. Die Regeln fordern trotzdem 900
+     und 500 an - der Browser nimmt heute 700 bzw. 400, und sobald die
+     Schnitte in Adobe Fonts ergaenzt sind, greifen sie von selbst. */
   --font-stack: 'basic-sans', Helvetica, Arial, sans-serif;
 
-  --danger: 154 43 33;
+  --danger: 199 42 9;
 }
 
 * {
@@ -95,8 +94,9 @@ input {
 
 .b2b-konfig__titel {
   margin: 0 0 12px;
-  font-size: clamp(26px, 2.6vw, 40px);
-  font-weight: 700;
+  font-size: clamp(26px, 2.8vw, 40px);
+  font-weight: 900;
+  letter-spacing: -0.015em;
   line-height: 1.1;
 }
 
@@ -119,14 +119,14 @@ input {
   flex: 1 1 260px;
   display: flex;
   align-items: center;
-  border: 1px solid rgb(var(--border-color));
+  border: 1px solid rgb(var(--linie));
   border-radius: var(--button-border-radius);
   background: rgb(var(--background));
   overflow: hidden;
 }
 
 .b2b-konfig__feld:focus-within {
-  border-color: rgb(var(--button-background));
+  border-color: rgb(var(--text-color));
 }
 
 .b2b-konfig__feld input {
@@ -155,7 +155,7 @@ input {
   width: 46px;
   align-self: stretch;
   border: 0;
-  border-left: 1px solid rgb(var(--border-color));
+  border-left: 1px solid rgb(var(--linie));
   background: transparent;
   color: inherit;
   font-size: 22px;
@@ -174,7 +174,7 @@ input {
 }
 
 .b2b-konfig__pfeil:focus-visible {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: -2px;
 }
 
@@ -207,7 +207,7 @@ input {
   gap: 8px;
   min-width: 150px;
   padding: 14px 20px;
-  border: 1px dashed rgb(var(--border-color));
+  border: 1px dashed rgb(var(--linie));
   border-radius: var(--button-border-radius);
   background: transparent;
   color: inherit;
@@ -219,7 +219,7 @@ input {
 .b2b-konfig__drop:hover,
 .b2b-konfig__drop.ist-ueber {
   opacity: 1;
-  border-color: rgb(var(--button-background));
+  border-color: rgb(var(--text-color));
 }
 
 .b2b-konfig__drop.hat-logo {
@@ -228,7 +228,7 @@ input {
 }
 
 .b2b-konfig__drop:focus-visible {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: 2px;
 }
 
@@ -265,7 +265,7 @@ input {
   gap: 12px;
   margin-top: 16px;
   padding: 12px 14px;
-  border: 1px solid rgb(var(--border-color));
+  border: 1px solid rgb(var(--linie));
   border-radius: var(--button-border-radius);
 }
 
@@ -318,7 +318,7 @@ input {
   width: 30px;
   height: 30px;
   padding: 0;
-  border: 1px solid rgb(var(--border-color));
+  border: 1px solid rgb(var(--linie));
   border-radius: 50%;
   background: none;
   cursor: pointer;
@@ -327,12 +327,12 @@ input {
 .b2b-konfig__tupfer button[aria-pressed='true'] {
   box-shadow:
     0 0 0 2px rgb(var(--background)),
-    0 0 0 3px rgb(var(--button-background));
+    0 0 0 3px rgb(var(--text-color));
 }
 
 .b2b-konfig__tupfer button:focus-visible,
 .b2b-konfig__tupfer input[type='color']:focus-visible {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: 2px;
 }
 
@@ -352,8 +352,8 @@ input {
   padding: 17px 40px;
   border: 0;
   border-radius: var(--button-border-radius);
-  background: rgb(var(--button-background));
-  color: rgb(var(--button-text-color));
+  background: rgb(var(--text-color));
+  color: rgb(var(--weiss));
   font-size: 17px;
   font-weight: 600;
   text-decoration: none;
@@ -366,7 +366,7 @@ input {
 }
 
 .b2b-konfig__cta:focus-visible {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: 2px;
 }
 
@@ -409,7 +409,7 @@ input {
   aspect-ratio: 1 / 1;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgb(var(--border-color));
+  border: 1px solid rgb(var(--linie));
   border-radius: 6px;
   background: rgb(var(--warengrund));
   cursor: zoom-in;
@@ -420,7 +420,7 @@ input {
 }
 
 .b2b-konfig__glas:focus-visible {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: 2px;
 }
 
@@ -452,8 +452,8 @@ input {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgb(var(--button-background));
-  color: rgb(var(--button-text-color));
+  background: rgb(var(--text-color));
+  color: rgb(var(--weiss));
   pointer-events: none;
 }
 
@@ -484,7 +484,7 @@ input {
   aspect-ratio: 1 / 1;
   object-fit: contain;
   display: block;
-  border: 1px solid rgb(var(--border-color));
+  border: 1px solid rgb(var(--linie));
   border-radius: 6px;
   background: rgb(var(--warengrund));
   padding: 6%;
@@ -498,8 +498,8 @@ input {
 
 .b2b-konfig__wahlknopf.ist-aktiv img {
   opacity: 1;
-  border-color: rgb(var(--button-background));
-  box-shadow: 0 0 0 1px rgb(var(--button-background));
+  border-color: rgb(var(--text-color));
+  box-shadow: 0 0 0 1px rgb(var(--text-color));
 }
 
 .b2b-konfig__wahlknopf span {
@@ -516,7 +516,7 @@ input {
 }
 
 .b2b-konfig__wahlknopf:focus-visible {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -597,7 +597,7 @@ input {
   padding: 44px 52px 40px;
   border: 1px solid rgb(var(--linie));
   border-radius: 16px;
-  background: rgb(var(--papier));
+  background: rgb(var(--weiss));
   box-shadow: 0 1px 2px rgb(var(--akzent) / 0.04), 0 12px 32px -18px rgb(var(--akzent) / 0.28);
 }
 
@@ -610,7 +610,7 @@ input {
   margin: 0 0 30px;
   padding-bottom: 14px;
   font-size: clamp(28px, 2.6vw, 38px);
-  font-weight: 700;
+  font-weight: 900;
   line-height: 1.05;
   letter-spacing: -0.015em;
 }
@@ -676,7 +676,7 @@ input {
   padding: 0;
   border: 2px solid rgb(var(--linie));
   border-radius: 50%;
-  background: rgb(var(--papier));
+  background: rgb(var(--weiss));
   font-size: 20px;
   font-weight: 700;
   color: rgb(var(--text-color) / 0.32);
@@ -687,7 +687,7 @@ input {
 .b2b-form__stufe.ist-aktiv .b2b-form__kreis {
   border-color: rgb(var(--akzent));
   background: rgb(var(--akzent-hauch));
-  color: rgb(var(--akzent-tief));
+  color: rgb(var(--akzent));
   box-shadow: 0 0 0 5px rgb(var(--akzent) / 0.12);
 }
 
@@ -695,7 +695,7 @@ input {
 .b2b-form__stufe.ist-fertig .b2b-form__kreis {
   border-color: rgb(var(--text-color));
   background: rgb(var(--text-color));
-  color: rgb(var(--papier));
+  color: rgb(var(--weiss));
 }
 
 .b2b-form__kreis:disabled {
@@ -708,7 +708,7 @@ input {
 }
 
 .b2b-form__kreis:focus-visible {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: 2px;
 }
 
@@ -746,7 +746,7 @@ input {
 .b2b-form__frage {
   margin: 0;
   font-size: 23px;
-  font-weight: 700;
+  font-weight: 900;
   letter-spacing: -0.01em;
 }
 
@@ -821,7 +821,7 @@ input {
      ausfuellen statt halb leer zu stehen. */
   aspect-ratio: 4 / 5;
   object-fit: cover;
-  border: 1px solid rgb(var(--border-color));
+  border: 1px solid rgb(var(--linie));
   border-radius: 6px;
   /* Mittelton wie ein Studiohintergrund. Heller geht nicht: die Socken sind
      weiss und freigestellt. Dunkler auch nicht: die Muetze ist schwarz.
@@ -842,7 +842,7 @@ input {
 
 .b2b-form__kachel:focus-visible img,
 .b2b-form__kachel:focus-visible .b2b-form__fragezeichen {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: 2px;
 }
 
@@ -892,7 +892,7 @@ input {
 .b2b-form__unterfrage {
   margin: 0 0 16px;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.35;
 }
 
@@ -907,7 +907,7 @@ input {
   padding: 20px;
   border: 1.5px dashed rgb(var(--linie));
   border-radius: 10px;
-  background: rgb(var(--sand) / 0.5);
+  background: rgb(var(--hell) / 0.5);
   color: inherit;
   cursor: pointer;
   text-align: center;
@@ -919,7 +919,7 @@ input {
 }
 
 .b2b-form__ablage:focus-visible {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: 2px;
 }
 
@@ -948,7 +948,7 @@ input {
   height: 72px;
   flex: none;
   object-fit: contain;
-  background: rgb(var(--sand));
+  background: rgb(var(--hell));
   border-radius: 4px;
 }
 
@@ -988,7 +988,7 @@ input {
 
 .b2b-form__mengenwert {
   margin: 0 0 4px;
-  color: rgb(var(--akzent-tief));
+  color: rgb(var(--akzent));
   font-size: 30px;
   font-weight: 700;
   line-height: 1.1;
@@ -1117,7 +1117,7 @@ input {
 .b2b-form__knopf.ist-stark {
   border-color: rgb(var(--text-color));
   background: rgb(var(--text-color));
-  color: rgb(var(--papier));
+  color: rgb(var(--weiss));
   font-weight: 600;
 }
 
@@ -1127,9 +1127,9 @@ input {
 }
 
 .b2b-form__knopf.ist-stark:hover:not(:disabled) {
-  border-color: rgb(var(--akzent-tief));
-  background: rgb(var(--akzent-tief));
-  color: rgb(var(--papier));
+  border-color: rgb(var(--akzent));
+  background: rgb(var(--akzent));
+  color: rgb(var(--weiss));
 }
 
 .b2b-form__knopf:disabled {
@@ -1138,7 +1138,7 @@ input {
 }
 
 .b2b-form__knopf:focus-visible {
-  outline: 2px solid rgb(var(--button-background));
+  outline: 2px solid rgb(var(--text-color));
   outline-offset: 2px;
 }
 
