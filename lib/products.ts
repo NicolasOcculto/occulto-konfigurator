@@ -41,6 +41,13 @@ export type Product = {
   band?: { from: number; to: number };
   /** Eingewebter Schriftzug: Mittelpunkt, Drehung in Grad, Laenge und Strichstaerke. */
   name: { x: number; y: number; a: number; len: number; th: number };
+  /**
+   * Handle der Infoseite im Shop. Die vier Vorlagen des Konfigurators sind
+   * nicht deckungsgleich mit den sieben Artikeln im Shop: die Skisocke ist
+   * dort eine Spezialsocke. Deshalb steht der Handle hier und wird nicht aus
+   * dem Schluessel abgeleitet.
+   */
+  shopHandle: string;
   /** Ab-Preis pro Stueck. null bedeutet "auf Anfrage". */
   priceFrom: number | null;
   /** Mindestmenge pro Groesse, nicht pro Bestellung. */
@@ -64,6 +71,7 @@ export const PRODUCTS: Product[] = [
     logo: { x: 0.545, y: 0.33, s: 0.17 },
     band: { from: 0.115, to: 0.172 },
     name: { x: 0.499, y: 0.806, a: -47, len: 0.107, th: 0.021 },
+    shopHandle: 'spezialsockem',
     priceFrom: 1.69,
     minQuantity: 100,
     unit: 'Paar',
@@ -80,6 +88,7 @@ export const PRODUCTS: Product[] = [
     logo: { x: 0.6, y: 0.45, s: 0.17 },
     band: { from: 0.337, to: 0.374 },
     name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
+    shopHandle: 'sneakersocken',
     priceFrom: null,
     minQuantity: 100,
     unit: 'Paar',
@@ -96,6 +105,7 @@ export const PRODUCTS: Product[] = [
     logo: { x: 0.61, y: 0.38, s: 0.19 },
     band: { from: 0.170, to: 0.222 },
     name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
+    shopHandle: 'tennissocken',
     priceFrom: 2.1,
     minQuantity: 100,
     unit: 'Paar',
@@ -112,6 +122,7 @@ export const PRODUCTS: Product[] = [
     logo: { x: 0.518, y: 0.689, s: 0.15 },
     logoOnLabel: true,
     name: { x: 0.518, y: 0.689, a: 0, len: 0.13, th: 0.02 },
+    shopHandle: 'mutzen',
     priceFrom: 6.5,
     minQuantity: 100,
     unit: 'Stück',
@@ -134,6 +145,7 @@ export const PRODUCT_CARDS = PRODUCTS.map((p) => ({
   w: p.w,
   h: p.h,
   dark: p.dark,
+  shopHandle: p.shopHandle,
   priceFrom: p.priceFrom,
   minQuantity: p.minQuantity,
   unit: p.unit,

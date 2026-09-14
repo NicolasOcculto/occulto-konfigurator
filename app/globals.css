@@ -358,20 +358,48 @@ input {
 
 /* --- Aktion --- */
 
-.b2b-konfig__cta {
+/* Zwei Knoepfe nebeneinander: die Hauptaktion gefuellt, daneben der Weg zur
+   Infoseite des gerade gezeigten Artikels. */
+.b2b-konfig__knoepfe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.b2b-konfig__cta,
+.b2b-konfig__mehr {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 24px;
-  padding: 17px 40px;
-  border: 0;
+  padding: 16px 34px;
   border-radius: var(--button-border-radius);
-  background: rgb(var(--akzent));
-  color: rgb(var(--weiss));
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   text-decoration: none;
   cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.b2b-konfig__cta {
+  border: 1px solid rgb(var(--akzent));
+  background: rgb(var(--akzent));
+  color: rgb(var(--weiss));
+}
+
+/* Der helle Nebenknopf: weiss mit rotem Rand, im Hover gefuellt. */
+.b2b-konfig__mehr {
+  border: 1px solid rgb(var(--akzent));
+  background: rgb(var(--weiss));
+  color: rgb(var(--akzent));
+}
+
+.b2b-konfig__mehr:hover {
+  background: rgb(var(--akzent));
+  color: rgb(var(--weiss));
 }
 
 .b2b-konfig__cta:disabled {
@@ -379,9 +407,10 @@ input {
   cursor: default;
 }
 
-.b2b-konfig__cta:focus-visible {
-  outline: 2px solid rgb(var(--text-color));
-  outline-offset: 2px;
+.b2b-konfig__cta:focus-visible,
+.b2b-konfig__mehr:focus-visible {
+  outline: 2px solid rgb(var(--akzent));
+  outline-offset: 3px;
 }
 
 .b2b-konfig__klein {
@@ -583,8 +612,9 @@ input {
     flex: 1 1 100%;
   }
 
-  .b2b-konfig__cta {
-    width: 100%;
+  .b2b-konfig__cta,
+  .b2b-konfig__mehr {
+    flex: 1 1 100%;
   }
 
   .b2b-konfig__ansicht {

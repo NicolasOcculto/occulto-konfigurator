@@ -16,5 +16,10 @@ export default async function Page({
   const params = await searchParams;
   const eingebettet = params.eingebettet === '1';
 
-  return <Configurator products={PRODUCT_CARDS} eingebettet={eingebettet} />;
+  // Die Landingpage haengt ihre eigene Adresse an den iframe. Nur so kann der
+  // Knopf "Mehr erfahren" auf die Produktseite desselben Shops zeigen - ein
+  // relativer Pfad wuerde im iframe gegen die Adresse der App aufgeloest.
+  const shop = typeof params.shop === 'string' ? params.shop : '';
+
+  return <Configurator products={PRODUCT_CARDS} eingebettet={eingebettet} shop={shop} />;
 }

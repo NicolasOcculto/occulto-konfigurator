@@ -51,9 +51,12 @@ function melde(was: 'hoehe' | 'anfrage', hoehe?: number) {
 export default function Configurator({
   products,
   eingebettet = false,
+  shop = '',
 }: {
   products: ProductCard[];
   eingebettet?: boolean;
+  /** Adresse des Shops, von der einbettenden Seite durchgereicht. */
+  shop?: string;
 }) {
   const [domain, setDomain] = useState('');
   const [company, setCompany] = useState('');
@@ -395,18 +398,32 @@ export default function Configurator({
             </div>
           )}
 
-          <button
-            type="button"
-            className="b2b-konfig__cta"
-            onClick={() => {
-              // Eingebettet springt die Landingpage zum Anfrageblock; allein
-              // stehend gibt es dort noch nichts, also nur ein Hinweis.
-              if (eingebettet) melde('anfrage');
-              else say('Nur Beispiel — das Anfrageformular kommt als Nächstes.');
-            }}
-          >
-            Jetzt anfragen
-          </button>
+          <div className="b2b-konfig__knoepfe">
+            <button
+              type="button"
+              className="b2b-konfig__cta"
+              onClick={() => {
+                // Eingebettet springt die Landingpage zum Anfrageblock; allein
+                // stehend gibt es dort noch nichts, also nur ein Hinweis.
+                if (eingebettet) melde('anfrage');
+                else say('Nur Beispiel — das Anfrageformular kommt als Nächstes.');
+              }}
+            >
+              Jetzt anfragen
+            </button>
+            {gezeigt && (
+              // target="_top" statt "_blank": im iframe wuerde der Link sonst
+              // die Produktseite in den Rahmen des Konfigurators laden.
+              <a
+                className="b2b-konfig__mehr"
+                href={`${shop}/products/${gezeigt.shopHandle}?view=b2b-produkt`}
+                target="_top"
+                title={`Infoseite ${gezeigt.label}`}
+              >
+                Mehr erfahren
+              </a>
+            )}
+          </div>
           <p className="b2b-konfig__klein">
             Unverbindlich · Designvorschlag kostenlos{lieferzeit && ` · Lieferzeit ${lieferzeit}`}
           </p>
