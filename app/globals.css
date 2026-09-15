@@ -125,12 +125,23 @@ input {
   font-weight: 400;
 }
 
-.b2b-konfig__text {
+/* Zwei Absaetze: der erste sagt, wer das Design macht, der zweite, wofuer
+   der Konfigurator da ist. Zusammen sind sie ein Gedanke, deshalb aussen
+   der volle Abstand und zwischen ihnen nur wenig. */
+.b2b-konfig__einleitung {
   margin: 0 0 34px;
+}
+
+.b2b-konfig__text {
+  margin: 0 0 14px;
   max-width: 44ch;
   font-size: 18px;
   line-height: 1.55;
   color: rgb(var(--text-color) / 0.72);
+}
+
+.b2b-konfig__einleitung .b2b-konfig__text:last-child {
+  margin-bottom: 0;
 }
 
 /* --- Eingabezeile: Feld mit Pfeil, daneben die Ablageflaeche --- */
@@ -599,9 +610,25 @@ input {
   border-radius: 6px;
 }
 
+/* Ohne feste Zeile: der Vorbehalt steht nur da, wenn ein Bild gerechnet
+   wurde. Mit grid-row: 2 haetten sich beide dieselbe Zeile geteilt und
+   uebereinandergelegen. */
 .b2b-konfig__untertitel {
   grid-column: 1 / -1;
-  grid-row: 2;
+}
+
+/* Klein, aber nicht versteckt: dieser Satz verhindert, dass ein
+   Automatenbild fuer den Entwurf der Grafikabteilung gehalten wird. */
+.b2b-konfig__vorbehalt {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px 13px;
+  border-left: 3px solid rgb(var(--akzent));
+  border-radius: 0 8px 8px 0;
+  background: rgb(var(--warengrund));
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgb(var(--text-color) / 0.72);
 }
 
 .b2b-konfig__bildtitel {
@@ -611,17 +638,29 @@ input {
   line-height: 1.15;
 }
 
+/* Der Preis steht neben dem Namen und darf ihn nicht ueberschreien:
+   kleiner, aber in der Akzentfarbe, damit er trotzdem zuerst gefunden
+   wird. Er bricht nie um - "ab 2,10" allein in einer Zeile waere falsch. */
+.b2b-konfig__bildtitel span {
+  margin-left: 4px;
+  color: rgb(var(--akzent));
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .b2b-konfig__bildtext {
   margin: 3px 0 0;
   font-size: 13px;
   opacity: 0.55;
 }
 
+/* Ohne den Preis ist hier nur noch die Mindestmenge uebrig. Die ist eine
+   Bedingung und keine Ansage - also leise, wie die Materialzeile. */
 .b2b-konfig__bildpreis {
-  margin: 5px 0 0;
-  color: rgb(var(--akzent));
-  font-size: 15px;
-  font-weight: 700;
+  margin: 4px 0 0;
+  font-size: 13px;
+  opacity: 0.55;
 }
 
 @media screen and (max-width: 899px) {
@@ -1469,6 +1508,17 @@ input {
    Karte, durch eine Haarlinie abgesetzt, und bleibt bewusst leise: kleine
    Schrift, gedaempfte Farbe, duenne Umrisse. Sie soll Vertrauen geben, nicht
    um Aufmerksamkeit mit dem Formular konkurrieren. */
+
+/* Steht direkt ueber dem Absendeknopf. Die Unverbindlichkeit ist das
+   Wichtigste an diesem Formular und stand bisher nur klein darunter. */
+.b2b-form__zusage {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: rgb(var(--akzent));
+}
 
 .b2b-form__siegel {
   display: flex;

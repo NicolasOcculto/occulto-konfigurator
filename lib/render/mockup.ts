@@ -333,10 +333,25 @@ function logoHelligkeit(layer: Raster): number {
 }
 
 /**
- * Weiche Maske fuer das Farbband am Bund.
+ * Hoehe eines einzelnen Rings, als Anteil des ausgemessenen Bandes.
  *
- * Echte Ware wird nicht durchgefaerbt: der Schaft bleibt weiss, farbig ist nur
- * der gestrickte Bund. Ohne die weiche Kante stuende dort eine harte Treppe.
+ * Zwei schmale Ringe statt eines breiten Blocks - so tragen Sportsocken ihre
+ * Farbe. Der breite Block sah aus wie eine aufgesetzte Kappe.
+ *
+ * Die Ringe sitzen an den beiden Raendern des gemessenen Bandes: aussen und
+ * innen bleibt damit alles, wie es an der echten Ware gemessen wurde, nur die
+ * Mitte dazwischen behaelt die Grundfarbe. Zwei mal 0.3 laesst 0.4 Zwischenraum
+ * - er ist breiter als die Ringe selbst, sonst laufen sie optisch wieder zu
+ * einem Band zusammen.
+ */
+const RING_ANTEIL = 0.3;
+
+/**
+ * Weiche Maske fuer die Farbringe am Bund.
+ *
+ * Echte Ware wird nicht durchgefaerbt: der Schaft bleibt weiss, farbig sind nur
+ * die Ringe am gestrickten Bund. Ohne die weiche Kante stuende dort eine harte
+ * Treppe.
  */
 function bandMask(
   w: number,
@@ -347,16 +362,31 @@ function bandMask(
   const mask = new Uint8Array(w * h);
   const from = band.from * h;
   const to = band.to * h;
-  const feather = Math.max(1, (to - from) * 0.06);
+  const dicke = (to - from) * RING_ANTEIL;
+  const ringe = [
+    { von: from, bis: from + dicke },
+    { von: to - dicke, bis: to },
+  ];
+  // Die weiche Kante richtet sich nach dem Ring, nicht nach dem ganzen Band -
+  // sonst waere sie bei diesen schmalen Streifen breiter als der Streifen.
+  const feather = Math.max(1, dicke * 0.18);
 
-  for (let y = 0; y < h; y++) {
-    if (y < from || y > to) continue;
-    const rand = Math.min(y - from, to - y);
-    const v = Math.round(Math.min(1, rand / feather) * 255);
-    if (v <= 0) continue;
-    for (let x = 0; x < w; x++) {
-      const i = y * w + x;
-      mask[i] = Math.min(v, silhouette[i]!);
+  for (const ring of ringe) {
+    const erste = Math.max(0, Math.floor(ring.von));
+    const letzte = Math.min(h - 1, Math.ceil(ring.bis));
+    for (let y = erste; y <= letzte; y++) {
+      if (y < ring.von || y > ring.bis) continue;
+      const rand = Math.min(y - ring.von, ring.bis - y);
+      const v = Math.round(Math.min(1, rand / feather) * 255);
+      if (v <= 0) continue;
+      for (let x = 0; x < w; x++) {
+        const i = y * w + x;
+        const wert = Math.min(v, silhouette[i]!);
+        // Die Ringe ueberschneiden sich nicht, aber der groessere Wert zu
+        // gewinnen ist die richtige Regel, falls ein Band mal so schmal ist,
+        // dass beide auf dieselbe Bildzeile fallen.
+        if (wert > mask[i]!) mask[i] = wert;
+      }
     }
   }
   return mask;
@@ -398,7 +428,7 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
   const tintIsWhite = tint.r > 250 && tint.g > 250 && tint.b > 250;
   if (!product.dark && !tintIsWhite) {
     if (product.band) {
-      // Nur der Bund wird farbig, der Rest der Socke bleibt wie er ist.
+      // Nur die Ringe am Bund werden farbig, der Rest der Socke bleibt wie er ist.
       const streifen = cloneRaster(base);
       multiplyColor(streifen, tint);
       maskWith(streifen, bandMask(width, height, product.band, silhouette));

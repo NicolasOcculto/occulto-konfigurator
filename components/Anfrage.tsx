@@ -569,11 +569,15 @@ export default function Anfrage({
               </label>
             </div>
 
+            {/* Frueher "Nachricht". Wer hier etwas schreibt, hat fast immer
+                einen Wunsch zum Design - die Beschriftung sagt das jetzt,
+                statt ein leeres Feld hinzustellen. */}
             <label className="b2b-form__feld">
-              <span>Nachricht (Optional)</span>
+              <span>Änderungswünsche & Anmerkungen (optional)</span>
               <textarea
-                rows={2}
+                rows={3}
                 value={nachricht}
+                placeholder="Farbwünsche, Motiv-Ideen, Termine – alles, was wir wissen sollten."
                 onChange={(e) => setNachricht(e.target.value)}
               />
             </label>
@@ -603,6 +607,15 @@ export default function Anfrage({
         </div>
         </div>
 
+        {/* Der letzte Satz vor dem Absenden. Die Unverbindlichkeit ist das
+            Wichtigste an diesem Formular und stand bisher nur klein unter
+            den Belegen. */}
+        {schritt === 3 && (
+          <p className="b2b-form__zusage">
+            Unverbindlich und kostenlos – ihr bekommt einen Designvorschlag, keine Rechnung.
+          </p>
+        )}
+
         <div className="b2b-form__leiste">
           {schritt > 1 ? (
             <button type="button" className="b2b-form__knopf" onClick={zurueck}>
@@ -617,7 +630,7 @@ export default function Anfrage({
             </button>
           ) : (
             <button type="submit" className="b2b-form__knopf ist-stark" disabled={sendet}>
-              {sendet ? 'Wird gesendet …' : 'Anfrage senden'}
+              {sendet ? 'Wird gesendet …' : 'Unverbindlich anfragen'}
             </button>
           )}
         </div>

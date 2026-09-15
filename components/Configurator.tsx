@@ -276,15 +276,24 @@ export default function Configurator({
               dann eine h2 hin. */}
           <p className="b2b-konfig__label">Konfigurator</p>
           {/* Zwei Zeilen mit unterschiedlichem Gewicht: die erste ist die
-              Ansage, die zweite die Antwort darauf. */}
+              Ansage, die zweite die Antwort darauf. Sie sagt bewusst, dass das
+              Design von uns kommt - was der Konfigurator zeigt, ist ein
+              Automat und soll nicht fuer den Entwurf gehalten werden. */}
           <Ueberschrift className="b2b-konfig__titel">
-            Dein Logo.
-            <span>Unser Design.</span>
+            Das echte Design
+            <span>kommt von uns.</span>
           </Ueberschrift>
-          <p className="b2b-konfig__text">
-            Gib für Inspiration die URL deiner Website ein. Änderungen passen wir gern unverbindlich
-            und kostenlos an.
-          </p>
+          <div className="b2b-konfig__einleitung">
+            <p className="b2b-konfig__text">
+              Unsere Grafikabteilung entwirft für euch ein Design – kostenlos und
+              unverbindlich. Von der schlichten Logosocke bis zum aufwendigen Muster:
+              wir können alles.
+            </p>
+            <p className="b2b-konfig__text">
+              Und wenn ihr ungeduldig seid und schon mal sehen wollt, wie euer Logo auf
+              einer Socke aussieht – probiert den Konfigurator.
+            </p>
+          </div>
 
           <div className="b2b-konfig__eingabe">
             <form className="b2b-konfig__feld" onSubmit={lookup}>
@@ -376,14 +385,14 @@ export default function Configurator({
 
           {hasResult && (
             <div className="b2b-konfig__farben">
-              <h2 className="b2b-konfig__farbtitel">Produktfarbe</h2>
+              <h2 className="b2b-konfig__farbtitel">Akzentfarbe</h2>
               <div className="b2b-konfig__tupfer">
                 {palette.map((color) => (
                   <button
                     key={color}
                     type="button"
                     title={color}
-                    aria-label={`Produktfarbe ${color}`}
+                    aria-label={`Akzentfarbe ${color}`}
                     aria-pressed={color.toUpperCase() === tint.toUpperCase()}
                     style={{ background: color }}
                     onClick={() => setTint(color)}
@@ -398,8 +407,8 @@ export default function Configurator({
                 />
               </div>
               <p className="b2b-konfig__farbnote">
-                Die Farbe färbt den Bund, nicht die ganze Socke. Dunkle Ware bleibt dunkel —
-                dort sitzt dein Logo im eingewebten Label.
+                Die Farbe färbt die beiden Ringe am Bund, nicht die ganze Socke. Dunkle Ware
+                bleibt dunkel — dort sitzt dein Logo im eingewebten Label.
               </p>
             </div>
           )}
@@ -415,7 +424,7 @@ export default function Configurator({
                 else say('Nur Beispiel — das Anfrageformular kommt als Nächstes.');
               }}
             >
-              Jetzt anfragen
+              Unverbindlich anfragen
             </button>
             {gezeigt && (
               // target="_top" statt "_blank": im iframe wuerde der Link sonst
@@ -424,9 +433,9 @@ export default function Configurator({
                 className="b2b-konfig__mehr"
                 href={`${shop}/products/${gezeigt.shopHandle}?view=b2b-produkt`}
                 target="_top"
-                title={`Infoseite ${gezeigt.label}`}
+                title={`Details zur ${gezeigt.label}`}
               >
-                Mehr erfahren
+                Details
               </a>
             )}
           </div>
@@ -526,12 +535,28 @@ export default function Configurator({
             ))}
           </div>
 
+          {/* Sobald ein Bild gerechnet wurde, steht der Vorbehalt dabei.
+              Vorher nicht: das Musterfoto behauptet nichts. */}
+          {gezeigt && previews[gezeigt.key] && (
+            <p className="b2b-konfig__vorbehalt">
+              Das ist eine automatische Vorschau, kein fertiges Design – unverbindlich und
+              nur zur Inspiration. Euer echtes Design macht unsere Grafikabteilung, und die
+              macht es deutlich besser.
+            </p>
+          )}
+
           {gezeigt && (
             <div className="b2b-konfig__untertitel">
-              <p className="b2b-konfig__bildtitel">{gezeigt.label}</p>
+              {/* Der Preis steht neben dem Namen: er ist das zweite, wonach
+                  gefragt wird, und ging in der Zeile darunter unter. Die
+                  Mindestmenge bleibt dort - sie ist eine Bedingung, keine
+                  Ueberschrift. */}
+              <p className="b2b-konfig__bildtitel">
+                {gezeigt.label} <span>{formatPrice(gezeigt.priceFrom)}</span>
+              </p>
               <p className="b2b-konfig__bildtext">{gezeigt.material}</p>
               <p className="b2b-konfig__bildpreis">
-                {formatPrice(gezeigt.priceFrom)} · ab {gezeigt.minQuantity} {gezeigt.unit} pro Größe
+                ab {gezeigt.minQuantity} {gezeigt.unit} pro Größe
               </p>
             </div>
           )}
