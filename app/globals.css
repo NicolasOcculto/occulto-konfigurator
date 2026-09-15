@@ -92,32 +92,42 @@ input {
   align-items: center;
 }
 
-.b2b-konfig__titel {
-  position: relative;
+/* Das Label ueber der Ueberschrift, wie in jedem Abschnitt der
+   Landingpage. Es ersetzt den Akzentstrich, der vorher darunter lag -
+   zwei Markierungen fuer dieselbe Sache waren eine zu viel. */
+.b2b-konfig__label {
+  display: block;
   margin: 0 0 16px;
-  padding-bottom: 12px;
-  font-size: clamp(30px, 3.4vw, 52px);
-  font-weight: 900;
-  line-height: 1.02;
+  color: rgb(var(--akzent));
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-/* Akzentstrich wie im Anfrageformular - die beiden Rahmen gehoeren zusammen. */
-.b2b-konfig__titel::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 46px;
-  height: 3px;
-  border-radius: 2px;
-  background: rgb(var(--akzent));
+.b2b-konfig__titel {
+  margin: 0 0 24px;
+  font-size: clamp(34px, 5vw, 70px);
+  font-weight: 900;
+  line-height: 0.98;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+/* Die zweite Zeile leichter: die erste ist die Ansage, die zweite die
+   Antwort darauf. Ein eigener Block, damit sie immer umbricht. */
+.b2b-konfig__titel span {
+  display: block;
+  font-weight: 400;
 }
 
 .b2b-konfig__text {
-  margin: 0 0 24px;
-  max-width: 46ch;
-  opacity: 0.8;
+  margin: 0 0 34px;
+  max-width: 44ch;
+  font-size: 18px;
+  line-height: 1.55;
+  color: rgb(var(--text-color) / 0.72);
 }
 
 /* --- Eingabezeile: Feld mit Pfeil, daneben die Ablageflaeche --- */
@@ -363,8 +373,8 @@ input {
 .b2b-konfig__knoepfe {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 24px;
+  gap: 12px;
+  margin-top: 30px;
 }
 
 .b2b-konfig__cta,
@@ -510,14 +520,29 @@ input {
   gap: 10px;
 }
 
+/* Eine Kachel statt Bild und Text nebeneinander - dieselbe Bauform wie
+   die Produktkacheln in Schritt 1 des Anfrageformulars. Vorher standen
+   die Namen lose unter den Bildern und wirkten verloren. */
 .b2b-konfig__wahlknopf {
-  display: block;
+  display: flex;
+  flex-direction: column;
   padding: 0;
-  border: 0;
-  background: none;
+  overflow: hidden;
+  border: 1px solid rgb(var(--linie));
+  border-radius: 10px;
+  background: rgb(var(--weiss));
   color: inherit;
+  font: inherit;
   cursor: pointer;
   text-align: center;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.b2b-konfig__wahlbild {
+  display: block;
+  background: rgb(var(--warengrund));
 }
 
 .b2b-konfig__wahlknopf img {
@@ -528,37 +553,31 @@ input {
   aspect-ratio: 1 / 1;
   object-fit: contain;
   display: block;
-  border: 1px solid rgb(var(--linie));
-  border-radius: 6px;
-  background: rgb(var(--warengrund));
-  padding: 6%;
-  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.22));
-  opacity: 0.6;
+  padding: 8%;
 }
 
-.b2b-konfig__wahlknopf:hover img {
-  opacity: 1;
-}
-
-.b2b-konfig__wahlknopf.ist-aktiv img {
-  opacity: 1;
+/* Der Schlagschatten ist raus: er sollte der weissen Ware eine Kante
+   geben, sah aber aus wie ein Aufkleber. Die Kante kommt vom Rahmen. */
+.b2b-konfig__wahlknopf:hover {
   border-color: rgb(var(--akzent));
-  box-shadow: 0 0 0 2px rgb(var(--akzent));
 }
 
-.b2b-konfig__wahlknopf span {
+.b2b-konfig__wahlknopf.ist-aktiv {
+  border-color: rgb(var(--akzent));
+  box-shadow: inset 0 0 0 1px rgb(var(--akzent));
+}
+
+.b2b-konfig__wahlname {
   display: block;
-  margin-top: 7px;
-  font-size: 15px;
+  padding: 9px 6px 10px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.2;
-  opacity: 0.85;
+  color: rgb(var(--text-color) / 0.8);
 }
 
-.b2b-konfig__wahlknopf.ist-aktiv span {
+.b2b-konfig__wahlknopf.ist-aktiv .b2b-konfig__wahlname {
   color: rgb(var(--akzent));
-  font-weight: 700;
-  opacity: 1;
 }
 
 .b2b-konfig__wahlknopf:focus-visible {
@@ -617,13 +636,18 @@ input {
     flex: 1 1 100%;
   }
 
+  /* 88 statt 76: bei 76 lief "Sneakersocke" aus der Kachel heraus -
+     nachgemessen, der Text war breiter als sein Kasten. */
   .b2b-konfig__ansicht {
-    grid-template-columns: minmax(0, 1fr) 76px;
+    grid-template-columns: minmax(0, 1fr) 88px;
     gap: 10px;
   }
 
-  .b2b-konfig__wahlknopf span {
-    font-size: 12px;
+  .b2b-konfig__wahlname {
+    padding: 7px 4px 8px;
+    font-size: 11px;
+    hyphens: auto;
+    overflow-wrap: anywhere;
   }
 }
 

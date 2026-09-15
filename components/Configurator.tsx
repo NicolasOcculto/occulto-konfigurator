@@ -274,7 +274,13 @@ export default function Configurator({
         <div className="b2b-konfig__links">
           {/* Eingebettet ist die Seite schon mit einer h1 versorgt, hier gehoert
               dann eine h2 hin. */}
-          <Ueberschrift className="b2b-konfig__titel">Dein Logo &ndash; Unser Design</Ueberschrift>
+          <p className="b2b-konfig__label">Konfigurator</p>
+          {/* Zwei Zeilen mit unterschiedlichem Gewicht: die erste ist die
+              Ansage, die zweite die Antwort darauf. */}
+          <Ueberschrift className="b2b-konfig__titel">
+            Dein Logo.
+            <span>Unser Design.</span>
+          </Ueberschrift>
           <p className="b2b-konfig__text">
             Gib für Inspiration die URL deiner Website ein. Änderungen passen wir gern unverbindlich
             und kostenlos an.
@@ -507,13 +513,15 @@ export default function Configurator({
                 {/* Ohne Mockup das zugeschnittene Vorschaubild: im Original
                     belegt die Socke nur einen Bruchteil der Breite und ist in
                     dieser Groesse nicht zu erkennen. */}
-                <img
-                  src={previews[product.key] ?? product.preview}
-                  alt=""
-                  width={product.w}
-                  height={product.h}
-                />
-                <span>{product.label}</span>
+                <span className="b2b-konfig__wahlbild">
+                  <img
+                    src={previews[product.key] ?? product.preview}
+                    alt=""
+                    width={product.w}
+                    height={product.h}
+                  />
+                </span>
+                <span className="b2b-konfig__wahlname">{product.label}</span>
               </button>
             ))}
           </div>
