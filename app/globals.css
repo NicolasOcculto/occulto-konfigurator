@@ -85,11 +85,14 @@ input {
 
 
 
+/* Oben ausrichten statt mittig: so beginnt die Ueberschrift auf derselben
+   Linie wie die Oberkante des Produktbildes. Mittig zentriert stand der
+   ganze Textblock rund hundert Bildpunkte tiefer als das Bild daneben. */
 .b2b-konfig__raster {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   gap: 56px;
-  align-items: center;
+  align-items: start;
 }
 
 /* Das Label ueber der Ueberschrift, wie in jedem Abschnitt der
@@ -99,7 +102,7 @@ input {
   display: block;
   margin: 0 0 16px;
   color: rgb(var(--akzent));
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: 0.14em;
@@ -431,6 +434,9 @@ input {
 
 /* --- Produktansicht: gross in der Mitte, Auswahl daneben --- */
 
+/* Die vier Kacheln bestimmen die Zeilenhoehe. Schmaler zu machen war der
+   falsche Hebel: bei 84 bricht "Sneakersocke" um und die Kachel wird dadurch
+   hoeher statt niedriger. Gekuerzt wird stattdessen die Namensleiste. */
 .b2b-konfig__ansicht {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 96px;
@@ -441,6 +447,7 @@ input {
 .b2b-konfig__buehne {
   grid-column: 1;
   grid-row: 1;
+  min-height: 0;
 }
 
 .b2b-konfig__buehne.ist-beschaeftigt {
@@ -455,11 +462,17 @@ input {
 }
 
 /* Die Buehne ist zugleich der Schalter fuer die Lupe. */
+/* Kein festes Quadrat mehr: die Auswahlspalte daneben ist 4 Kacheln hoch
+   und bestimmt damit die Zeilenhoehe. Blieb die Buehne quadratisch, standen
+   darunter rund 90 Bildpunkte leer und die kleinen Bilder reichten tiefer als
+   das grosse. Jetzt fuellt sie die Zeile - das Hauptbild wird groesser, und
+   beide Spalten enden auf derselben Linie. */
 .b2b-konfig__glas {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 100%;
+  min-height: 0;
   padding: 0;
   overflow: hidden;
   border: 1px solid rgb(var(--linie));
@@ -517,7 +530,7 @@ input {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
 /* Eine Kachel statt Bild und Text nebeneinander - dieselbe Bauform wie
@@ -569,8 +582,8 @@ input {
 
 .b2b-konfig__wahlname {
   display: block;
-  padding: 9px 6px 10px;
-  font-size: 14px;
+  padding: 7px 4px 8px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
   color: rgb(var(--text-color) / 0.8);
