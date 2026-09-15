@@ -1,0 +1,21 @@
+# Damit der Bau bei Netlify nicht vom Zufall abhaengt.
+#
+# Netlify erkennt Next.js von selbst und setzt Baubefehl und Ausgabeordner
+# richtig. Zwei Dinge legt diese Datei trotzdem fest:
+#
+# 1. Die Node-Version. Ohne Angabe nimmt Netlify seine jeweilige
+#    Voreinstellung - und die aendert sich mit der Zeit. Next.js 16 braucht
+#    mindestens Node 20.9; 22 ist die derzeit langfristig gepflegte Version.
+#
+# 2. Den Baubefehl ausdruecklich, damit man in der Netlify-Oberflaeche sieht,
+#    was passiert, statt es erraten zu muessen.
+#
+# ACHTUNG: Hier stehen keine Schluessel und keine Adressen. RESEND_API_KEY,
+# ANFRAGE_EMPFAENGER und ANFRAGE_ABSENDER werden in der Netlify-Oberflaeche
+# gesetzt - diese Datei liegt im Git-Verlauf und waere der falsche Ort dafuer.
+
+[build]
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "22"
