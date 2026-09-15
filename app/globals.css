@@ -653,6 +653,23 @@ input {
   padding: 0;
 }
 
+/* Titel und Logo auf einer Linie. Der Titel behaelt seinen Abstand nach
+   unten, das Logo haengt an der Oberkante der Schrift. */
+.b2b-form__marke {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* Nicht __logo: so heisst schon die Ablageflaeche in Schritt 2. */
+.b2b-form__zeichen {
+  flex: none;
+  width: auto;
+  height: 22px;
+  margin-top: 4px;
+}
+
 .b2b-form__titel {
   position: relative;
   margin: 0 0 18px;

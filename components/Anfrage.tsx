@@ -278,7 +278,20 @@ export default function Anfrage({
           </div>
         )}
       <div ref={kopf}>
-        <Ueberschrift className="b2b-form__titel">Anfrage</Ueberschrift>
+        {/* Titel links, Logo rechts. Das Formular steht als iframe in der
+           Landingpage - ohne Zeichen ist nicht zu erkennen, dass es zu
+           Occulto gehoert. */}
+        <div className="b2b-form__marke">
+          <Ueberschrift className="b2b-form__titel">Anfrage</Ueberschrift>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="b2b-form__zeichen"
+            src="/occulto-logo.png"
+            alt="Occulto"
+            width={600}
+            height={133}
+          />
+        </div>
 
         {/* Fortschritt: drei Kreise auf einer durchgehenden Linie. Die Linie
             liegt hinter den Kreisen, der zurueckgelegte Teil ist kraeftiger. */}
