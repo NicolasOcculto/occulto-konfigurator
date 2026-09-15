@@ -1,6 +1,9 @@
 # Occulto Merch-Konfigurator
 
-Next.js 16 (App Router) für Vercel. Der Besucher gibt eine Firmendomain ein, der Server
+> Betrieb, Konten und Wartung: siehe  und 
+> im Theme-Repository.
+
+Next.js 16 (App Router), betrieben bei Netlify. Der Besucher gibt eine Firmendomain ein, der Server
 holt Logo und Markenfarben von der Website und rendert damit Produktmockups mit sharp.
 
 ## Start
