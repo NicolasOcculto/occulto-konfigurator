@@ -488,7 +488,7 @@ input {
   overflow: hidden;
   border: 1px solid rgb(var(--linie));
   border-radius: 6px;
-  background: rgb(var(--warengrund));
+  background: rgb(var(--weiss));
   cursor: zoom-in;
 }
 
@@ -566,7 +566,7 @@ input {
 
 .b2b-konfig__wahlbild {
   display: block;
-  background: rgb(var(--warengrund));
+  background: rgb(var(--weiss));
 }
 
 .b2b-konfig__wahlknopf img {
@@ -625,7 +625,7 @@ input {
   padding: 10px 13px;
   border-left: 3px solid rgb(var(--akzent));
   border-radius: 0 8px 8px 0;
-  background: rgb(var(--warengrund));
+  background: rgb(var(--linie) / 0.3);
   font-size: 13px;
   line-height: 1.45;
   color: rgb(var(--text-color) / 0.72);
@@ -968,7 +968,7 @@ input {
   align-items: center;
   justify-content: center;
   aspect-ratio: 1 / 1;
-  background: rgb(var(--warengrund));
+  background: rgb(var(--weiss));
 }
 
 .b2b-form__kachel img {

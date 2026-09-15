@@ -102,6 +102,12 @@ function isEmpty(box: LocalBox): boolean {
  * Eingrenzung wuerde bei der dunklen Muetze der schwarze Strick ringsum als
  * Druck durchgehen und die Flaeche ins Uferlose wachsen.
  */
+/** Das Rechteck, das allein aus den Angaben am Produkt folgt. */
+function nameBox(product: Product, w: number, h: number): LabelBox {
+  const n = product.name;
+  return { cx: n.x * w, cy: n.y * h, halfW: n.len * w * 0.62, halfH: n.th * w * 1.1 };
+}
+
 function measureExistingPrint(product: Product, raster: Raster, material: RGB): LabelBox {
   const { data, w, h } = raster;
   const n = product.name;
@@ -153,7 +159,7 @@ function measureExistingPrint(product: Product, raster: Raster, material: RGB): 
     });
   }
 
-  const fallback: LabelBox = { cx, cy, halfW: n.len * w * 0.62, halfH: n.th * w * 1.1 };
+  const fallback = nameBox(product, w, h);
   if (isEmpty(ink)) return fallback;
 
   // Etwas Luft rundum, damit auch weiche Kanten des Drucks verschwinden.
@@ -347,11 +353,75 @@ function logoHelligkeit(layer: Raster): number {
 const RING_ANTEIL = 0.3;
 
 /**
+ * Neigung des Schafts im Bereich des Bundes.
+ *
+ * Die Ringe liegen um einen Zylinder, und der steht im Foto schraeg. Waagrecht
+ * gezogen sehen sie aufgeklebt aus statt umlaufend - sie muessen quer zur Achse
+ * des Schafts liegen und damit leicht angeschnitten sein.
+ *
+ * Gemessen statt geschaetzt: fuer jede Bildzeile im Bundbereich die Mitte
+ * zwischen linkem und rechtem Rand der Silhouette, daraus eine
+ * Ausgleichsgerade. Das haelt auch dann, wenn ein Produktfoto ausgetauscht
+ * wird und die Socke anders im Bild steht.
+ *
+ * Rueckgabe: m ist die Verschiebung der Mitte je Bildzeile nach unten, xc die
+ * Mitte selbst.
+ */
+function schaftNeigung(
+  w: number,
+  h: number,
+  band: { from: number; to: number },
+  silhouette: Uint8Array,
+): { m: number; xc: number } {
+  // Etwas ueber und unter dem Band mitmessen: ein paar Zeilen mehr machen die
+  // Gerade ruhiger, ohne in den Fuss zu geraten.
+  const von = Math.max(0, Math.floor((band.from - 0.03) * h));
+  const bis = Math.min(h - 1, Math.ceil((band.to + 0.03) * h));
+  const ys: number[] = [];
+  const xs: number[] = [];
+
+  for (let y = von; y <= bis; y++) {
+    let links = -1;
+    let rechts = -1;
+    for (let x = 0; x < w; x++) {
+      if (silhouette[y * w + x]! > 128) {
+        if (links < 0) links = x;
+        rechts = x;
+      }
+    }
+    // Zu schmale Zeilen sind Rand oder Rauschen, keine Ware.
+    if (links < 0 || rechts - links < w * 0.05) continue;
+    ys.push(y);
+    xs.push((links + rechts) / 2);
+  }
+
+  const n = ys.length;
+  if (n < 8) return { m: 0, xc: w / 2 };
+
+  const mitteY = ys.reduce((a, b) => a + b, 0) / n;
+  const mitteX = xs.reduce((a, b) => a + b, 0) / n;
+  let zaehler = 0;
+  let nenner = 0;
+  for (let i = 0; i < n; i++) {
+    zaehler += (ys[i]! - mitteY) * (xs[i]! - mitteX);
+    nenner += (ys[i]! - mitteY) ** 2;
+  }
+  const m = nenner === 0 ? 0 : zaehler / nenner;
+  // Mehr als das waere keine Neigung mehr, sondern ein Messfehler - etwa,
+  // wenn die Freistellung im Bundbereich ausgefranst ist.
+  return { m: Math.max(-0.6, Math.min(0.6, m)), xc: mitteX };
+}
+
+/**
  * Weiche Maske fuer die Farbringe am Bund.
  *
  * Echte Ware wird nicht durchgefaerbt: der Schaft bleibt weiss, farbig sind nur
  * die Ringe am gestrickten Bund. Ohne die weiche Kante stuende dort eine harte
  * Treppe.
+ *
+ * Gerechnet wird nicht in Bildzeilen, sondern in u: der Hoehe entlang der
+ * Schaftachse. Dadurch laufen die Ringe quer zum Schaft und sind schraeg
+ * angeschnitten, so wie ein umlaufender Ring im Foto aussieht.
  */
 function bandMask(
   w: number,
@@ -370,17 +440,23 @@ function bandMask(
   // Die weiche Kante richtet sich nach dem Ring, nicht nach dem ganzen Band -
   // sonst waere sie bei diesen schmalen Streifen breiter als der Streifen.
   const feather = Math.max(1, dicke * 0.18);
+  const { m, xc } = schaftNeigung(w, h, band, silhouette);
 
   for (const ring of ringe) {
-    const erste = Math.max(0, Math.floor(ring.von));
-    const letzte = Math.min(h - 1, Math.ceil(ring.bis));
+    // Der Suchbereich waechst um das, was die Neigung ueber die Bildbreite
+    // ausmacht - sonst fehlte der Ring an den Raendern.
+    const spielraum = Math.abs(m) * w;
+    const erste = Math.max(0, Math.floor(ring.von - spielraum));
+    const letzte = Math.min(h - 1, Math.ceil(ring.bis + spielraum));
     for (let y = erste; y <= letzte; y++) {
-      if (y < ring.von || y > ring.bis) continue;
-      const rand = Math.min(y - ring.von, ring.bis - y);
-      const v = Math.round(Math.min(1, rand / feather) * 255);
-      if (v <= 0) continue;
       for (let x = 0; x < w; x++) {
         const i = y * w + x;
+        if (silhouette[i]! === 0) continue;
+        const u = y + m * (x - xc);
+        if (u < ring.von || u > ring.bis) continue;
+        const rand = Math.min(u - ring.von, ring.bis - u);
+        const v = Math.round(Math.min(1, rand / feather) * 255);
+        if (v <= 0) continue;
         const wert = Math.min(v, silhouette[i]!);
         // Die Ringe ueberschneiden sich nicht, aber der groessere Wert zu
         // gewinnen ist die richtige Regel, falls ein Band mal so schmal ist,
@@ -413,15 +489,19 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
 
   // 1 - Produkt laden und freistellen.
   const base = await loadRaster(productImage, { w: width, h: height });
-  floodFillBackground(base);
+  floodFillBackground(base, product.cutTolerance);
   const silhouette = extractAlpha(base);
 
-  // 2 - Alten Schriftzug ausmessen und uebermalen.
+  // 2 - Alten Schriftzug ausmessen und uebermalen. Traegt das Foto keinen,
+  // entfaellt beides: zu messen gaebe es nur die Struktur der Ware.
   const labelColor = sampleLabelColor(product, base);
-  const printBox = measureExistingPrint(product, base, labelColor);
-  const patch = await labelPatch(product, base, labelColor, printBox);
-  maskWith(patch, silhouette);
-  compositeOver(base, patch);
+  let printBox = nameBox(product, width, height);
+  if (product.hasPrintedName !== false) {
+    printBox = measureExistingPrint(product, base, labelColor);
+    const patch = await labelPatch(product, base, labelColor, printBox);
+    maskWith(patch, silhouette);
+    compositeOver(base, patch);
+  }
 
   // 3 - Wunschfarbe auflegen. Dunkle Ware wird nicht eingefaerbt.
   const tint = parseHexColor(color);

@@ -39,6 +39,25 @@ export type Product = {
    * bleibt Ware in Grundfarbe stehen, sonst wirkt er wie eine abgeschnittene Kappe.
    */
   band?: { from: number; to: number };
+  /**
+   * Wie hell ein Bildpunkt sein darf, um noch als Ware zu gelten - als
+   * Abstand zu Weiss. Ohne Angabe gilt der grosszuegige Standardwert.
+   *
+   * Nur noetig, wenn die Ware fast so hell ist wie der Hintergrund. Auf den
+   * Sockenfotos von 2026 ist der Hintergrund 255 und der hellste Punkt der
+   * Socke 246 - mit dem Standardwert (ab 229 ist Hintergrund) wurde die
+   * halbe Socke weggeschnitten.
+   */
+  cutTolerance?: number;
+  /**
+   * Traegt das Foto einen eingewebten Schriftzug, der uebermalt werden muss?
+   * Ohne Angabe ja.
+   *
+   * Bei false wird nicht gemessen und nicht uebermalt: der neue Schriftzug
+   * bekommt die Groesse aus name.len. Sonst haelt die Messung die Rippen der
+   * Ware fuer Druck und zieht ihn ueber den Rand der Socke hinaus.
+   */
+  hasPrintedName?: boolean;
   /** Eingewebter Schriftzug: Mittelpunkt, Drehung in Grad, Laenge und Strichstaerke. */
   name: { x: number; y: number; a: number; len: number; th: number };
   /**
@@ -60,51 +79,27 @@ export type Product = {
 /** Einheitlich fuer alle Produkte, aus den Angaben im Shop. */
 const LIEFERZEIT = '6–8 Wochen';
 
+/**
+ * Reihenfolge nach Nachfrage, das Haeufigste zuerst.
+ *
+ * Die Anteile fuer Ringe, Logo und Schriftzug sind an den Fotos vom
+ * 15.09.2026 ausgemessen, nicht geschaetzt: Silhouette je Bildzeile, daraus
+ * Bundkante und Mittellinie des Schafts. Wird ein Foto getauscht, muessen sie
+ * neu gemessen werden - die Socke steht dann anders im Bild.
+ */
 export const PRODUCTS: Product[] = [
   {
-    key: 'skisocke',
-    label: 'Skisocke',
-    file: 'skisocke.webp',
-    w: 675,
-    h: 900,
-    dark: false,
-    logo: { x: 0.545, y: 0.33, s: 0.17 },
-    band: { from: 0.115, to: 0.172 },
-    name: { x: 0.499, y: 0.806, a: -47, len: 0.107, th: 0.021 },
-    shopHandle: 'spezialsockem',
-    priceFrom: 1.69,
-    minQuantity: 100,
-    unit: 'Paar',
-    leadTime: LIEFERZEIT,
-    material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan',
-  },
-  {
-    key: 'sneaker',
-    label: 'Sneakersocke',
-    file: 'sneaker.webp',
-    w: 675,
-    h: 900,
-    dark: false,
-    logo: { x: 0.6, y: 0.45, s: 0.17 },
-    band: { from: 0.337, to: 0.374 },
-    name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
-    shopHandle: 'sneakersocken',
-    priceFrom: null,
-    minQuantity: 100,
-    unit: 'Paar',
-    leadTime: LIEFERZEIT,
-    material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan',
-  },
-  {
     key: 'tennis',
-    label: 'Tennissocke',
+    label: 'Tennissocken',
     file: 'tennis.webp',
     w: 675,
     h: 900,
     dark: false,
-    logo: { x: 0.61, y: 0.38, s: 0.19 },
-    band: { from: 0.170, to: 0.222 },
-    name: { x: 0.535, y: 0.735, a: -47, len: 0.15, th: 0.024 },
+    cutTolerance: 5,
+    hasPrintedName: false,
+    logo: { x: 0.56, y: 0.345, s: 0.19 },
+    band: { from: 0.205, to: 0.275 },
+    name: { x: 0.6, y: 0.435, a: -18, len: 0.15, th: 0.024 },
     shopHandle: 'tennissocken',
     priceFrom: 2.1,
     minQuantity: 100,
@@ -113,8 +108,46 @@ export const PRODUCTS: Product[] = [
     material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan, frottierte Sohle',
   },
   {
+    key: 'casual',
+    label: 'Casual Socken',
+    file: 'casual.webp',
+    w: 693,
+    h: 900,
+    dark: false,
+    cutTolerance: 5,
+    hasPrintedName: false,
+    logo: { x: 0.505, y: 0.365, s: 0.17 },
+    band: { from: 0.245, to: 0.315 },
+    name: { x: 0.545, y: 0.455, a: -17, len: 0.15, th: 0.024 },
+    shopHandle: 'sneakersocken',
+    priceFrom: null,
+    minQuantity: 100,
+    unit: 'Paar',
+    leadTime: LIEFERZEIT,
+    material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan',
+  },
+  {
+    key: 'stopper',
+    label: 'Stopper & Weitere',
+    file: 'stopper.webp',
+    w: 692,
+    h: 900,
+    dark: false,
+    cutTolerance: 5,
+    hasPrintedName: false,
+    logo: { x: 0.56, y: 0.33, s: 0.17 },
+    band: { from: 0.215, to: 0.285 },
+    name: { x: 0.605, y: 0.41, a: -18, len: 0.15, th: 0.024 },
+    shopHandle: 'spezialsockem',
+    priceFrom: 1.69,
+    minQuantity: 100,
+    unit: 'Paar',
+    leadTime: LIEFERZEIT,
+    material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan, Noppensohle',
+  },
+  {
     key: 'muetze',
-    label: 'Mütze',
+    label: 'Mützen & Textilien',
     file: 'muetze.webp',
     w: 692,
     h: 900,
@@ -175,17 +208,17 @@ export const ANFRAGE_KATEGORIEN = [
     key: 'casual',
     label: 'Casual Socken',
     unterzeile: 'Der Klassiker',
-    vorschau: '/products/vorschau/sneaker.webp',
+    vorschau: '/products/vorschau/casual.webp',
   },
   {
     key: 'spezial',
-    label: 'Spezialsocken',
-    unterzeile: 'Ski, Rad, Diabetiker',
-    vorschau: '/products/vorschau/skisocke.webp',
+    label: 'Stopper & Weitere',
+    unterzeile: 'Stopper, Ski, Rad',
+    vorschau: '/products/vorschau/stopper.webp',
   },
   {
     key: 'textil',
-    label: 'Weitere Textilien',
+    label: 'Mützen & Textilien',
     unterzeile: 'Mützen, Shirts, Hoodies',
     vorschau: '/products/vorschau/muetze.webp',
   },
@@ -196,10 +229,11 @@ export type AnfrageKategorie = (typeof ANFRAGE_KATEGORIEN)[number];
 /** Was der Konfigurator zeigt, auf die Kategorie des Formulars uebersetzt. */
 const KATEGORIE_JE_VORLAGE: Record<string, string> = {
   tennis: 'tennis',
-  // Der Konfigurator kennt die Sneakersocke, das Formular fasst sie unter
-  // Casual: es hat vier Kategorien, der Shop sieben Artikel.
-  sneaker: 'casual',
-  skisocke: 'spezial',
+  casual: 'casual',
+  // Die Kategorie im Formular heisst weiterhin spezial: der Schluessel
+  // steht in abgelegten Anfragen und wird nicht wegen einer Beschriftung
+  // umbenannt.
+  stopper: 'spezial',
   muetze: 'textil',
 };
 
