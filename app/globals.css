@@ -450,7 +450,10 @@ input {
    hoeher statt niedriger. Gekuerzt wird stattdessen die Namensleiste. */
 .b2b-konfig__ansicht {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
+  /* Die Kachelspalte gibt die Hoehe der ganzen Reihe vor (siehe Buehne). Mit
+     96 fiel die Reihe zu flach aus; mit 116 sind die Kacheln zugleich besser
+     zu erkennen. */
+  grid-template-columns: minmax(0, 1fr) 116px;
   grid-template-rows: auto auto;
   gap: 14px;
 }
@@ -478,6 +481,15 @@ input {
    darunter rund 90 Bildpunkte leer und die kleinen Bilder reichten tiefer als
    das grosse. Jetzt fuellt sie die Zeile - das Hauptbild wird groesser, und
    beide Spalten enden auf derselben Linie. */
+/* Die Hoehe gibt die Kachelspalte vor, nicht das Foto.
+
+   Vorher bestimmte das Produktfoto sie: die Socke steht hochkant, also war die
+   Reihe so hoch wie das Bild - und die drei Kacheln daneben zogen sich ueber
+   diese Hoehe auseinander. Jetzt zaehlt das Bild nicht mehr zur Hoehe (es liegt
+   absolut in der Buehne), damit bleibt die Kachelspalte als hoechster Inhalt
+   uebrig und die Buehne dehnt sich auf deren Mass. Das haelt auch dann noch,
+   wenn das Fenster schmaler wird - eine feste Seitenverhaeltniszahl taete das
+   nicht. */
 .b2b-konfig__glas {
   position: relative;
   display: block;
@@ -502,6 +514,8 @@ input {
 }
 
 .b2b-konfig__glas img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -535,13 +549,16 @@ input {
   pointer-events: none;
 }
 
+/* Die Kacheln sind eine Gruppe und stehen beieinander. Vorher verteilten sie
+   sich ueber die volle Hoehe der Buehne - bei drei Kacheln standen dann
+   Handbreiten dazwischen. */
 .b2b-konfig__wahl {
   grid-column: 2;
   grid-row: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 /* Eine Kachel statt Bild und Text nebeneinander - dieselbe Bauform wie
