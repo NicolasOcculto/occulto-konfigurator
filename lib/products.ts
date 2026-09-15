@@ -145,26 +145,6 @@ export const PRODUCTS: Product[] = [
     material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan',
   },
   {
-    key: 'stopper',
-    label: 'Stopper & Weitere',
-    file: 'stopper.webp',
-    w: 692,
-    h: 900,
-    dark: false,
-    hasPrintedName: false,
-    logo: { x: 0.56, y: 0.33, s: 0.17, dx: 0.025 },
-    band: { from: 0.215, to: 0.285 },
-    bandAngle: -24,
-    bandBow: 0.18,
-    name: { x: 0.605, y: 0.41, a: -24, len: 0.15, th: 0.024 },
-    shopHandle: 'spezialsockem',
-    priceFrom: 1.69,
-    minQuantity: 100,
-    unit: 'Paar',
-    leadTime: LIEFERZEIT,
-    material: '80 % Baumwolle, 17 % Polyamid, 3 % Elasthan, Noppensohle',
-  },
-  {
     key: 'muetze',
     label: 'Mützen & Textilien',
     file: 'muetze.webp',
@@ -210,11 +190,11 @@ export type ProductCard = (typeof PRODUCT_CARDS)[number];
 /**
  * Auswahl im Anfrageformular.
  *
- * Bewusst nicht dieselbe Liste wie oben: der Konfigurator zeigt die vier
- * Vorlagen, fuer die es Mockups gibt. Im Formular geht es dagegen um die
- * Kategorien, die Occulto anbietet - eine Skisocke ist eine Spezialsocke, eine
- * Muetze faellt unter weitere Textilien. Reihenfolge nach Nachfrage, das
- * Haeufigste zuerst.
+ * Bewusst nicht dieselbe Liste wie oben: der Konfigurator zeigt die Vorlagen,
+ * fuer die es ein brauchbares Mockup gibt. Im Formular geht es dagegen um die
+ * Kategorien, die Occulto anbietet - deshalb steht "Stopper & Weitere" hier,
+ * obwohl der Konfigurator sie nicht mehr zeigt. Reihenfolge nach Nachfrage,
+ * das Haeufigste zuerst.
  */
 export const ANFRAGE_KATEGORIEN = [
   {
@@ -249,10 +229,8 @@ export type AnfrageKategorie = (typeof ANFRAGE_KATEGORIEN)[number];
 const KATEGORIE_JE_VORLAGE: Record<string, string> = {
   tennis: 'tennis',
   casual: 'casual',
-  // Die Kategorie im Formular heisst weiterhin spezial: der Schluessel
-  // steht in abgelegten Anfragen und wird nicht wegen einer Beschriftung
-  // umbenannt.
-  stopper: 'spezial',
+  // Fuer "Stopper & Weitere" gibt es hier nichts zu uebersetzen: die
+  // Kategorie steht im Formular, im Konfigurator nicht mehr.
   muetze: 'textil',
 };
 
