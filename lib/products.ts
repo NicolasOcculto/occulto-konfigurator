@@ -43,14 +43,10 @@ export type Product = {
    * Wie hell ein Bildpunkt sein darf, um noch als Ware zu gelten - als
    * Abstand zu Weiss. Ohne Angabe gilt der grosszuegige Standardwert.
    *
-   * Nur noetig, wenn die Ware fast so hell ist wie der Hintergrund. Auf den
-   * Sockenfotos von 2026 ist der Hintergrund 255 und der hellste Punkt der
-   * Socke 246 - mit dem Standardwert (ab 229 ist Hintergrund) wurde die
-   * halbe Socke weggeschnitten.
-   *
-   * Den Schlagschatten ueber diese Schwelle mitzunehmen ging nicht: er reicht
-   * bis 246 herauf, und ab 246 bricht die Freistellung bei der Tennissocke in
-   * die Ware ein. Er ist stattdessen einmalig aus den Dateien entfernt.
+   * Zurzeit nutzt das kein Produkt: die Sockenfotos bringen ihren Alphakanal
+   * mit, und ein Foto mit Freistellung wird gar nicht erst nach Helligkeit
+   * beschnitten. Gebraucht wird der Wert erst wieder, wenn eine Aufnahme ohne
+   * Freistellung dazukommt und die Ware fast so hell ist wie der Hintergrund.
    */
   cutTolerance?: number;
   /**
@@ -99,7 +95,6 @@ export const PRODUCTS: Product[] = [
     w: 675,
     h: 900,
     dark: false,
-    cutTolerance: 5,
     hasPrintedName: false,
     logo: { x: 0.56, y: 0.345, s: 0.19 },
     band: { from: 0.205, to: 0.275 },
@@ -118,7 +113,6 @@ export const PRODUCTS: Product[] = [
     w: 693,
     h: 900,
     dark: false,
-    cutTolerance: 5,
     hasPrintedName: false,
     logo: { x: 0.505, y: 0.365, s: 0.17 },
     band: { from: 0.245, to: 0.315 },
@@ -137,7 +131,6 @@ export const PRODUCTS: Product[] = [
     w: 692,
     h: 900,
     dark: false,
-    cutTolerance: 5,
     hasPrintedName: false,
     logo: { x: 0.56, y: 0.33, s: 0.17 },
     band: { from: 0.215, to: 0.285 },
