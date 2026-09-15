@@ -289,10 +289,15 @@ export default function Configurator({
               unverbindlich. Von der schlichten Logosocke bis zum aufwendigen Muster:
               wir können alles.
             </p>
-            <p className="b2b-konfig__text">
-              Und wenn ihr ungeduldig seid und schon mal sehen wollt, wie euer Logo auf
-              einer Socke aussieht – probiert den Konfigurator.
-            </p>
+            {/* Die Einladung faellt weg, sobald ein Logo da ist: sie fordert zu
+                etwas auf, das gerade passiert. Die linke Spalte wird dann
+                ausserdem laenger als die Ansicht daneben. */}
+            {!logo && (
+              <p className="b2b-konfig__text">
+                Und wenn ihr ungeduldig seid und schon mal sehen wollt, wie euer Logo auf
+                einer Socke aussieht – probiert den Konfigurator.
+              </p>
+            )}
           </div>
 
           <div className="b2b-konfig__eingabe">
