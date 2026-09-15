@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { kategorieLabel } from '@/lib/products';
 import { betreff, htmlMail, textMail, type Anfrage } from '@/lib/anfrage-mail';
 import { clientIp, rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
+import { empfaengerAus } from '@/lib/empfaenger';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,10 +13,7 @@ const WINDOW_SECONDS = 60 * 60;
 const MAX_LOGO_BYTES = 5_000_000;
 const ERLAUBTE_TYPEN = new Set(['image/png', 'image/jpeg', 'image/svg+xml']);
 
-// Bewusst keine persoenliche Adresse als Rueckfall: geht das Postfach
-// irgendwann nicht mehr, verschwinden Anfragen stillschweigend. Wer sie
-// woanders haben will, setzt ANFRAGE_EMPFAENGER - siehe UEBERGABE.md.
-const EMPFAENGER = process.env.ANFRAGE_EMPFAENGER || 'support@occulto.de';
+const EMPFAENGER = empfaengerAus(process.env.ANFRAGE_EMPFAENGER);
 // Resend verlangt einen Absender auf einer dort freigeschalteten Domain.
 // onboarding@resend.dev funktioniert ohne eigene Domain, aber nur an die
 // Adresse des Kontoinhabers - fuer den Echtbetrieb muss occulto.de dort stehen.
@@ -188,7 +186,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       },
       body: JSON.stringify({
         from: ABSENDER,
-        to: [EMPFAENGER],
+        to: EMPFAENGER,
         reply_to: mail,
         subject: betreff(anfrage),
         html: htmlMail(anfrage),
