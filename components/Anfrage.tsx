@@ -342,10 +342,15 @@ export default function Anfrage({
                   meldung('');
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.vorschau} alt="" width={480} height={480} />
-                <span className="b2b-form__kachelname">{p.label}</span>
-                <span className="b2b-form__punkt" aria-hidden="true" />
+                <span className="b2b-form__kachelbild">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.vorschau} alt="" width={480} height={480} />
+                  <span className="b2b-form__punkt" aria-hidden="true" />
+                </span>
+                <span className="b2b-form__kachelfuss">
+                  <span className="b2b-form__kachelname">{p.label}</span>
+                  <span className="b2b-form__kachelunter">{p.unterzeile}</span>
+                </span>
               </button>
             ))}
             <button
@@ -361,11 +366,16 @@ export default function Anfrage({
                 meldung('');
               }}
             >
-              <span className="b2b-form__fragezeichen" aria-hidden="true">
-                ?
+              <span className="b2b-form__kachelbild">
+                <span className="b2b-form__fragezeichen" aria-hidden="true">
+                  +
+                </span>
+                <span className="b2b-form__punkt" aria-hidden="true" />
               </span>
-              <span className="b2b-form__kachelname">Weiß ich noch nicht</span>
-              <span className="b2b-form__punkt" aria-hidden="true" />
+              <span className="b2b-form__kachelfuss">
+                <span className="b2b-form__kachelname">Weiß ich noch nicht</span>
+                <span className="b2b-form__kachelunter">Gerne beraten wir dich</span>
+              </span>
             </button>
           </div>
         </div>

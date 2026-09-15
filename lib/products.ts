@@ -165,10 +165,30 @@ export type ProductCard = (typeof PRODUCT_CARDS)[number];
  * Haeufigste zuerst.
  */
 export const ANFRAGE_KATEGORIEN = [
-  { key: 'tennis', label: 'Tennissocken', vorschau: '/products/vorschau/tennis.webp' },
-  { key: 'sneaker', label: 'Sneakersocken', vorschau: '/products/vorschau/sneaker.webp' },
-  { key: 'spezial', label: 'Spezialsocken', vorschau: '/products/vorschau/skisocke.webp' },
-  { key: 'textil', label: 'Weitere Textilien', vorschau: '/products/vorschau/muetze.webp' },
+  {
+    key: 'tennis',
+    label: 'Tennissocken',
+    unterzeile: 'Klassisch und vielseitig',
+    vorschau: '/products/vorschau/tennis.webp',
+  },
+  {
+    key: 'sneaker',
+    label: 'Sneakersocken',
+    unterzeile: 'Unsichtbar im Schuh',
+    vorschau: '/products/vorschau/sneaker.webp',
+  },
+  {
+    key: 'spezial',
+    label: 'Spezialsocken',
+    unterzeile: 'Ski, Rad, Diabetiker',
+    vorschau: '/products/vorschau/skisocke.webp',
+  },
+  {
+    key: 'textil',
+    label: 'Weitere Textilien',
+    unterzeile: 'Mützen, Shirts, Hoodies',
+    vorschau: '/products/vorschau/muetze.webp',
+  },
 ] as const;
 
 export type AnfrageKategorie = (typeof ANFRAGE_KATEGORIEN)[number];

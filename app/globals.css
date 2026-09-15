@@ -831,100 +831,158 @@ input {
   opacity: 0.7;
 }
 
-/* --- Schritt 1: Produktkacheln --- */
+/* --- Schritt 1: Produktkacheln ---
+   Eine Kachel ist ein Stueck: Bildfeld oben, darunter Name und eine kurze
+   Zeile, was der Artikel ist. Der Auswahlpunkt liegt oben rechts im Bild -
+   dort, wo man ihn bei einer Auswahlkachel erwartet, und er nimmt dem Fuss
+   keinen Platz weg.
+
+   Der Schlagschatten unter dem Bild ist raus. Er sollte der weissen Ware eine
+   Kante geben, sah aber aus wie ein Aufkleber. Die Kante kommt vom Rahmen.
+
+   ZUM GRAUTON, weil er immer wieder auffaellt: nachgemessen liegt die mittlere
+   Helligkeit der drei Socken bei 236 von 255, die der Muetze bei 37. Beide
+   muessen sich auf demselben Grund abzeichnen. Ueber etwa 225 verschwindet die
+   weisse Ware. Heller wird es erst mit Produktfotos, die ihren Hintergrund
+   selbst mitbringen, statt freigestellt zu sein. */
 
 .b2b-form__kacheln {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .b2b-form__kachel {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 9px;
   padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font-size: 15px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.b2b-form__kachel img {
-  /* Weicher Schatten gibt der weissen Ware eine Kante. */
-  filter: drop-shadow(0 3px 7px rgb(0 0 0 / 0.28));
-  padding: 6px;
-}
-
-.b2b-form__kachel img,
-.b2b-form__fragezeichen {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
+  overflow: hidden;
   border: 1px solid rgb(var(--linie));
-  border-radius: 6px;
-  /* Mittelton wie ein Studiohintergrund. Heller geht nicht: die Socken sind
-     weiss und freigestellt. Dunkler auch nicht: die Muetze ist schwarz.
-     Beides muss sich auf demselben Grund abzeichnen. */
+  border-radius: 14px;
+  background: rgb(var(--weiss));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.b2b-form__kachelbild {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
   background: rgb(var(--warengrund));
 }
 
-.b2b-form__kachel:hover img,
-.b2b-form__kachel:hover .b2b-form__fragezeichen {
-  border-color: rgb(var(--akzent) / 0.55);
-}
-
-.b2b-form__kachel.ist-gewaehlt img,
-.b2b-form__kachel.ist-gewaehlt .b2b-form__fragezeichen {
-  border-color: rgb(var(--akzent));
-  box-shadow: 0 0 0 2px rgb(var(--akzent) / 0.35);
-}
-
-.b2b-form__kachel:focus-visible img,
-.b2b-form__kachel:focus-visible .b2b-form__fragezeichen {
-  outline: 2px solid rgb(var(--text-color));
-  outline-offset: 2px;
+.b2b-form__kachel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .b2b-form__fragezeichen {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 34px;
-  font-weight: 700;
-  /* Nur das Zeichen blass, nicht die Kachel: opacity auf dem Element haette
+  width: 46px;
+  height: 46px;
+  border: 1.5px solid rgb(var(--text-color) / 0.35);
+  border-radius: 50%;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1;
+  /* Nur das Zeichen blass, nicht das Feld: opacity auf dem Elternteil haette
      auch den Untergrund aufgehellt und die Kachel aus der Reihe fallen lassen. */
   color: rgb(var(--text-color) / 0.45);
 }
 
+/* --- Der Auswahlpunkt, oben rechts im Bild --- */
+
+.b2b-form__punkt {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid rgb(var(--text-color) / 0.3);
+  border-radius: 50%;
+  background: rgb(var(--weiss) / 0.7);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+/* --- Der Fuss: Name und eine Zeile Erklaerung --- */
+
+.b2b-form__kachelfuss {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 auto;
+  padding: 12px 13px 14px;
+}
+
 .b2b-form__kachelname {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.25;
-  /* Zwei Zeilen Platz, damit die Wahlkreise darunter auf einer Linie bleiben,
-     wenn ein Name umbricht. */
-  min-height: 2.5em;
 }
 
-.b2b-form__kachel.ist-gewaehlt .b2b-form__kachelname {
-  font-weight: 700;
+.b2b-form__kachelunter {
+  font-size: 13px;
+  line-height: 1.3;
+  color: rgb(var(--text-color) / 0.6);
 }
 
-/* Der Kreis unter der Kachel wie in der Skizze: er zeigt die Wahl an. */
-.b2b-form__punkt {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgb(var(--text-color) / 0.28);
-  border-radius: 50%;
+/* --- Zustaende --- */
+
+.b2b-form__kachel:hover {
+  border-color: rgb(var(--akzent));
+}
+
+.b2b-form__kachel:hover .b2b-form__punkt {
+  border-color: rgb(var(--akzent));
+  background: rgb(var(--weiss));
+}
+
+.b2b-form__kachel.ist-gewaehlt {
+  border-color: rgb(var(--akzent));
+  box-shadow: inset 0 0 0 1px rgb(var(--akzent));
 }
 
 .b2b-form__kachel.ist-gewaehlt .b2b-form__punkt {
   border-color: rgb(var(--akzent));
-  background: radial-gradient(circle, rgb(var(--akzent)) 0 45%, transparent 46%);
+  background: rgb(var(--akzent));
+}
+
+/* Das Haekchen im gewaehlten Punkt: zwei Kanten eines Kastens, gedreht. */
+.b2b-form__kachel.ist-gewaehlt .b2b-form__punkt::after {
+  content: '';
+  position: absolute;
+  left: 6.5px;
+  top: 4px;
+  width: 5px;
+  height: 9px;
+  border: solid rgb(var(--weiss));
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.b2b-form__kachel:focus-visible {
+  outline: 2px solid rgb(var(--akzent));
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .b2b-form__kachel,
+  .b2b-form__punkt {
+    transition: none;
+  }
 }
 
 /* --- Schritt 2: zwei Spalten --- */
@@ -1202,6 +1260,25 @@ input {
 @media screen and (max-width: 640px) {
   .b2b-form__kacheln {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  /* Bei 375 px ist eine Kachel 100 Bildpunkte breit, fuer den Text bleiben
+     davon 74. Die Unterzeile braecke dort auf drei Zeilen um und machte die
+     Kachel hoch und unruhig. Der Name allein genuegt auf dem Handy. */
+  .b2b-form__kachelunter {
+    display: none;
+  }
+
+  .b2b-form__kachelfuss {
+    padding: 10px;
+  }
+
+  .b2b-form__punkt {
+    top: 7px;
+    right: 7px;
+    width: 20px;
+    height: 20px;
   }
 }
 
