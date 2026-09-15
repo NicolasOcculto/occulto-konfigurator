@@ -321,7 +321,8 @@ async function logoLayer(
   h: number,
   logo: Buffer,
   box: LabelBox | null,
-  mitte?: number | null,
+  mitte: number | null,
+  grad: number,
 ): Promise<Raster | null> {
   const targetWidth = box
     ? Math.max(8, Math.round(box.halfW * 2 * 0.92))
@@ -350,10 +351,10 @@ async function logoLayer(
     floodFillBackground(patch);
 
     // Die Ware steht im Foto schraeg. Waagrecht aufgesetzt sieht das Logo
-    // aufgeklebt aus statt eingestrickt - es bekommt dieselbe Neigung wie der
-    // Schriftzug. Auf dem Muetzenlabel (box gesetzt) bleibt es gerade: dort
-    // liegt eine flache Webmarke, keine gewoelbte Flaeche.
-    const neigung = box ? 0 : product.name.a;
+    // aufgeklebt aus statt eingestrickt - es bekommt dieselbe Neigung wie die
+    // Ringe. Auf dem Muetzenlabel (box gesetzt) bleibt es gerade: dort liegt
+    // eine flache Webmarke, keine gewoelbte Flaeche.
+    const neigung = box ? 0 : grad;
     if (neigung !== 0) {
       // Erst freistellen, dann drehen: die Freistellung erkennt einen weissen
       // Grund nur, solange er noch deckend ist. Nach dem Drehen waeren die
@@ -367,7 +368,9 @@ async function logoLayer(
       patch = { data: gedreht.data, w: gedreht.info.width, h: gedreht.info.height };
     }
 
-    const cx = box ? box.cx : (mitte ?? product.logo.x * w);
+    const cx = box
+      ? box.cx
+      : (mitte ?? product.logo.x * w) + (product.logo.dx ?? 0) * w;
     const cy = box ? box.cy : product.logo.y * h;
     const layer = emptyRaster(w, h);
     placeInto(layer, patch, cx - patch.w / 2, cy - patch.h / 2);
@@ -443,10 +446,13 @@ function schaftNeigung(
   band: { from: number; to: number },
   silhouette: Uint8Array,
 ): { m: number; xc: number; yc: number; halbBreite: number } {
-  // Etwas ueber und unter dem Band mitmessen: ein paar Zeilen mehr machen die
-  // Gerade ruhiger, ohne in den Fuss zu geraten.
+  // Ein gutes Stueck Schaft unterhalb des Bandes mitmessen, nicht nur dessen
+  // eigene Hoehe: direkt am Bund steht die Socke fast senkrecht, die Neigung
+  // entwickelt sich erst darunter. Nur am Band gemessen kamen bei der
+  // Casualsocke 8.7 Grad heraus statt der 17, die der Schaft tatsaechlich
+  // hat - die Ringe standen dann sichtbar quer zur Ware.
   const von = Math.max(0, Math.floor((band.from - 0.03) * h));
-  const bis = Math.min(h - 1, Math.ceil((band.to + 0.03) * h));
+  const bis = Math.min(h - 1, Math.ceil((band.to + 0.2) * h));
   const ys: number[] = [];
   const xs: number[] = [];
   const breiten: number[] = [];
@@ -490,6 +496,27 @@ function schaftNeigung(
 }
 
 /**
+ * Die Neigung, der alles auf diesem Produkt folgt: Ringe, Logo, Schriftzug.
+ *
+ * Gemessen, sofern es einen Bund gibt, und bei Bedarf am Produkt
+ * ueberschrieben. Null fuer Ware ohne Bund - die Muetze traegt eine flache
+ * Webmarke, dort steht nichts schraeg.
+ */
+function neigungDerWare(
+  product: Product,
+  w: number,
+  h: number,
+  silhouette: Uint8Array,
+): { m: number; xc: number; yc: number; halbBreite: number } | null {
+  if (!product.band) return null;
+  const gemessen = schaftNeigung(w, h, product.band, silhouette);
+  if (product.bandAngle === undefined) return gemessen;
+  // Grad gegen den Uhrzeigersinn in dieselbe Steigung umrechnen, die die
+  // Messung liefert.
+  return { ...gemessen, m: -Math.tan((product.bandAngle * Math.PI) / 180) };
+}
+
+/**
  * Weiche Maske fuer die Farbringe am Bund.
  *
  * Echte Ware wird nicht durchgefaerbt: der Schaft bleibt weiss, farbig sind nur
@@ -501,6 +528,7 @@ function schaftNeigung(
  * angeschnitten, so wie ein umlaufender Ring im Foto aussieht.
  */
 function bandMask(
+  product: Product,
   w: number,
   h: number,
   band: { from: number; to: number },
@@ -517,8 +545,8 @@ function bandMask(
   // Die weiche Kante richtet sich nach dem Ring, nicht nach dem ganzen Band -
   // sonst waere sie bei diesen schmalen Streifen breiter als der Streifen.
   const feather = Math.max(1, dicke * 0.18);
-  const { m, xc, yc, halbBreite } = schaftNeigung(w, h, band, silhouette);
-  const bogen = RING_BOGEN * halbBreite;
+  const { m, xc, yc, halbBreite } = neigungDerWare(product, w, h, silhouette)!;
+  const bogen = (product.bandBow ?? RING_BOGEN) * halbBreite;
 
   for (const ring of ringe) {
     // Der Suchbereich waechst um das, was Neigung und Woelbung ueber die
@@ -585,6 +613,10 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
     ? mitteDerWare(silhouette, width, height, product.name.y)
     : null;
 
+  // Dieselbe Neigung wie die Ringe, in Grad.
+  const lage = neigungDerWare(product, width, height, silhouette);
+  const logoNeigung = lage ? -(Math.atan(lage.m) * 180) / Math.PI : 0;
+
   let printBox = nameBox(product, width, height, mitteName);
   if (product.hasPrintedName !== false) {
     printBox = measureExistingPrint(product, base, labelColor);
@@ -601,7 +633,7 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
       // Nur die Ringe am Bund werden farbig, der Rest der Socke bleibt wie er ist.
       const streifen = cloneRaster(base);
       multiplyColor(streifen, tint);
-      maskWith(streifen, bandMask(width, height, product.band, silhouette));
+      maskWith(streifen, bandMask(product, width, height, product.band, silhouette));
       compositeOver(base, streifen);
     } else {
       multiplyColor(base, tint);
@@ -632,6 +664,7 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
       logo,
       logoTakesLabel ? printBox : null,
       mitteLogo,
+      logoNeigung,
     );
     if (placed) {
       // Auf der Ware behaelt das Logo seine eigenen Farben. Umgefaerbt wird nur,

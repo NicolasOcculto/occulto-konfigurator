@@ -22,7 +22,14 @@ export type Product = {
   /** Dunkle Ware: Logo wird als weisse Silhouette gesetzt, Textur per Soft-Light. */
   dark: boolean;
   /** Platzierung des Logos: Mittelpunkt (x,y) und Breite (s), jeweils relativ. */
-  logo: { x: number; y: number; s: number };
+  /**
+   * Mittelpunkt und Groesse des Kundenlogos, in Anteilen der Bildmasse.
+   *
+   * x dient nur als Rueckfall: liegt ein Bund vor, wird die Mitte der Ware
+   * gemessen. dx verschiebt sie danach - die Silhouettenmitte ist nicht die
+   * Mitte der sichtbaren Vorderseite, wenn die Socke gedreht steht.
+   */
+  logo: { x: number; y: number; s: number; dx?: number };
   /**
    * Das Logo sitzt auf der eingewebten Marke statt frei auf der Ware. Dann gibt
    * der ausgemessene Aufdruck Ort und Groesse vor, das Motiv steht dunkel auf
@@ -39,6 +46,19 @@ export type Product = {
    * bleibt Ware in Grundfarbe stehen, sonst wirkt er wie eine abgeschnittene Kappe.
    */
   band?: { from: number; to: number };
+  /**
+   * Neigung der Ringe in Grad, gegen den Uhrzeigersinn. Ohne Angabe wird sie
+   * an der Silhouette gemessen; Logo und Schriftzug folgen ihr.
+   *
+   * Noetig, wenn die Aufnahme staerker gedreht ist, als die Mittellinie des
+   * Schafts verraet - bei der Stoppersocke sieht man mehr von der Seite.
+   */
+  bandAngle?: number;
+  /**
+   * Wie tief die Ringe in der Mitte durchhaengen, als Anteil der halben
+   * Schaftbreite. Ohne Angabe der Standardwert.
+   */
+  bandBow?: number;
   /**
    * Wie hell ein Bildpunkt sein darf, um noch als Ware zu gelten - als
    * Abstand zu Weiss. Ohne Angabe gilt der grosszuegige Standardwert.
@@ -96,7 +116,7 @@ export const PRODUCTS: Product[] = [
     h: 900,
     dark: false,
     hasPrintedName: false,
-    logo: { x: 0.56, y: 0.345, s: 0.19 },
+    logo: { x: 0.56, y: 0.345, s: 0.19, dx: 0.01 },
     band: { from: 0.205, to: 0.275 },
     name: { x: 0.6, y: 0.435, a: -18, len: 0.15, th: 0.024 },
     shopHandle: 'tennissocken',
@@ -114,7 +134,7 @@ export const PRODUCTS: Product[] = [
     h: 900,
     dark: false,
     hasPrintedName: false,
-    logo: { x: 0.505, y: 0.365, s: 0.17 },
+    logo: { x: 0.505, y: 0.365, s: 0.15, dx: 0.008 },
     band: { from: 0.245, to: 0.315 },
     name: { x: 0.545, y: 0.455, a: -17, len: 0.15, th: 0.024 },
     shopHandle: 'sneakersocken',
@@ -132,9 +152,11 @@ export const PRODUCTS: Product[] = [
     h: 900,
     dark: false,
     hasPrintedName: false,
-    logo: { x: 0.56, y: 0.33, s: 0.17 },
+    logo: { x: 0.56, y: 0.33, s: 0.17, dx: 0.025 },
     band: { from: 0.215, to: 0.285 },
-    name: { x: 0.605, y: 0.41, a: -18, len: 0.15, th: 0.024 },
+    bandAngle: -24,
+    bandBow: 0.18,
+    name: { x: 0.605, y: 0.41, a: -24, len: 0.15, th: 0.024 },
     shopHandle: 'spezialsockem',
     priceFrom: 1.69,
     minQuantity: 100,
