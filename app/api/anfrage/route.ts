@@ -12,7 +12,10 @@ const WINDOW_SECONDS = 60 * 60;
 const MAX_LOGO_BYTES = 5_000_000;
 const ERLAUBTE_TYPEN = new Set(['image/png', 'image/jpeg', 'image/svg+xml']);
 
-const EMPFAENGER = process.env.ANFRAGE_EMPFAENGER || 'nicolas.grinninger@occulto.de';
+// Bewusst keine persoenliche Adresse als Rueckfall: geht das Postfach
+// irgendwann nicht mehr, verschwinden Anfragen stillschweigend. Wer sie
+// woanders haben will, setzt ANFRAGE_EMPFAENGER - siehe UEBERGABE.md.
+const EMPFAENGER = process.env.ANFRAGE_EMPFAENGER || 'support@occulto.de';
 // Resend verlangt einen Absender auf einer dort freigeschalteten Domain.
 // onboarding@resend.dev funktioniert ohne eigene Domain, aber nur an die
 // Adresse des Kontoinhabers - fuer den Echtbetrieb muss occulto.de dort stehen.

@@ -2,7 +2,7 @@ import Anfrage from '@/components/Anfrage';
 import { ANFRAGE_KATEGORIEN } from '@/lib/products';
 
 /** Rueckfallweg, wenn der Versand scheitert. Gleiche Adresse wie der Empfaenger. */
-const FALLBACK_MAIL = process.env.ANFRAGE_EMPFAENGER || 'nicolas.grinninger@occulto.de';
+const FALLBACK_MAIL = process.env.ANFRAGE_EMPFAENGER || 'support@occulto.de';
 
 /**
  * Die Datenschutzerklaerung liegt im Shop, nicht in dieser App. Ein relativer
