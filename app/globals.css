@@ -1426,3 +1426,49 @@ input {
   color: rgb(var(--akzent));
   font-weight: 600;
 }
+
+/* --- Die Beleg-Leiste unter dem Formular ---
+   Drei Angaben, die im Gespraech ohnehin kommen. Sie sitzt innerhalb der
+   Karte, durch eine Haarlinie abgesetzt, und bleibt bewusst leise: kleine
+   Schrift, gedaempfte Farbe, duenne Umrisse. Sie soll Vertrauen geben, nicht
+   um Aufmerksamkeit mit dem Formular konkurrieren. */
+
+.b2b-form__siegel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 34px;
+  margin: 24px 0 0;
+  padding: 16px 0 0;
+  border-top: 1px solid rgb(var(--linie));
+  list-style: none;
+}
+
+.b2b-form__siegel li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgb(var(--text-color) / 0.62);
+}
+
+.b2b-form__siegel svg {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Auf schmalen Schirmen weg. Gemessen bei 375 px: die drei Angaben stapeln
+   sich auf drei Zeilen und kosten 106 Bildpunkte Hoehe - auf einem Schirm, auf
+   dem das Formular ohnehin schon scrollt und der Knopf zaehlt. Die Angaben
+   stehen auf der Landingpage direkt darueber, gehen also nicht verloren. */
+@media screen and (max-width: 640px) {
+  .b2b-form__siegel {
+    display: none;
+  }
+}

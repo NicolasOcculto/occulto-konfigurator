@@ -26,6 +26,34 @@ const SCHRITTMARKEN = ['Produkt', 'Design & Menge', 'Kontakt'] as const;
 /** Die eigentliche Frage des Schritts, als Ueberschrift darunter. */
 const SCHRITTFRAGEN = ['Um welches Produkt geht es?', 'Design & Stückzahl', 'Kontakt Daten'] as const;
 
+/**
+ * Die Leiste unter dem Formular.
+ *
+ * Wortlaut bewusst wie auf der Landingpage: Produktion in Portugal und der
+ * Tuerkei, Design in Rosenheim, OEKO-TEX Standard 100. Hier soll nichts
+ * behauptet werden, was dort nicht steht - eine Herkunftsangabe, die sich
+ * zwischen zwei Seiten widerspricht, ist schlimmer als gar keine.
+ *
+ * Die Pfade sind einfache Umrisse, damit kein Symbolpaket noetig ist.
+ */
+const BELEGE = [
+  {
+    text: 'Design aus Rosenheim',
+    // Stift
+    pfade: ['M3 21l4-1 11-11a2.1 2.1 0 0 0-3-3L4 17l-1 4Z', 'M14.5 6.5l3 3'],
+  },
+  {
+    text: 'Produktion in Portugal und der Türkei',
+    // Ortsmarke
+    pfade: ['M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11Z', 'M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'],
+  },
+  {
+    text: 'OEKO-TEX Standard 100',
+    // Schild mit Haken
+    pfade: ['M12 3 4 6.5v5c0 4.4 3.4 8.2 8 9 4.6-.8 8-4.6 8-9v-5L12 3Z', 'M9 12l2.2 2.2L15.5 10'],
+  },
+] as const;
+
 type Schritt = 1 | 2 | 3;
 
 /** Nachricht an die einbettende Seite. Kein Nutzerinhalt, nur Steuerdaten. */
@@ -594,6 +622,22 @@ export default function Anfrage({
           )}
         </div>
       </form>
+
+        {/* Drei Angaben, die im Gespraech ohnehin kommen. Wortlaut wie auf
+            der Landingpage - hier soll nichts behauptet werden, was dort
+            nicht steht. */}
+        <ul className="b2b-form__siegel">
+          {BELEGE.map((b) => (
+            <li key={b.text}>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                {b.pfade.map((p) => (
+                  <path key={p} d={p} />
+                ))}
+              </svg>
+              {b.text}
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
