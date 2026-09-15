@@ -47,6 +47,10 @@ export type Product = {
    * Sockenfotos von 2026 ist der Hintergrund 255 und der hellste Punkt der
    * Socke 246 - mit dem Standardwert (ab 229 ist Hintergrund) wurde die
    * halbe Socke weggeschnitten.
+   *
+   * Den Schlagschatten ueber diese Schwelle mitzunehmen ging nicht: er reicht
+   * bis 246 herauf, und ab 246 bricht die Freistellung bei der Tennissocke in
+   * die Ware ein. Er ist stattdessen einmalig aus den Dateien entfernt.
    */
   cutTolerance?: number;
   /**

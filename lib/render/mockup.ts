@@ -102,10 +102,49 @@ function isEmpty(box: LocalBox): boolean {
  * Eingrenzung wuerde bei der dunklen Muetze der schwarze Strick ringsum als
  * Druck durchgehen und die Flaeche ins Uferlose wachsen.
  */
+/**
+ * Waagrechte Mitte der Ware auf einer bestimmten Hoehe.
+ *
+ * Damit sitzen Logo und Schriftzug mittig auf dem Schaft, statt auf einem
+ * von Hand eingetragenen Anteil, der nach jedem Fototausch wieder daneben
+ * liegt. Gemittelt ueber ein paar Zeilen, damit eine ausgefranste Kante den
+ * Wert nicht verzieht.
+ */
+function mitteDerWare(
+  silhouette: Uint8Array,
+  w: number,
+  h: number,
+  yAnteil: number,
+): number | null {
+  const y0 = Math.max(0, Math.round(yAnteil * h) - 6);
+  const y1 = Math.min(h - 1, Math.round(yAnteil * h) + 6);
+  let summe = 0;
+  let n = 0;
+  for (let y = y0; y <= y1; y++) {
+    let links = -1;
+    let rechts = -1;
+    for (let x = 0; x < w; x++) {
+      if (silhouette[y * w + x]! > 128) {
+        if (links < 0) links = x;
+        rechts = x;
+      }
+    }
+    if (links < 0 || rechts - links < w * 0.05) continue;
+    summe += (links + rechts) / 2;
+    n++;
+  }
+  return n ? summe / n : null;
+}
+
 /** Das Rechteck, das allein aus den Angaben am Produkt folgt. */
-function nameBox(product: Product, w: number, h: number): LabelBox {
+function nameBox(product: Product, w: number, h: number, mitte?: number | null): LabelBox {
   const n = product.name;
-  return { cx: n.x * w, cy: n.y * h, halfW: n.len * w * 0.62, halfH: n.th * w * 1.1 };
+  return {
+    cx: mitte ?? n.x * w,
+    cy: n.y * h,
+    halfW: n.len * w * 0.62,
+    halfH: n.th * w * 1.1,
+  };
 }
 
 function measureExistingPrint(product: Product, raster: Raster, material: RGB): LabelBox {
@@ -282,6 +321,7 @@ async function logoLayer(
   h: number,
   logo: Buffer,
   box: LabelBox | null,
+  mitte?: number | null,
 ): Promise<Raster | null> {
   const targetWidth = box
     ? Math.max(8, Math.round(box.halfW * 2 * 0.92))
@@ -327,7 +367,7 @@ async function logoLayer(
       patch = { data: gedreht.data, w: gedreht.info.width, h: gedreht.info.height };
     }
 
-    const cx = box ? box.cx : product.logo.x * w;
+    const cx = box ? box.cx : (mitte ?? product.logo.x * w);
     const cy = box ? box.cy : product.logo.y * h;
     const layer = emptyRaster(w, h);
     placeInto(layer, patch, cx - patch.w / 2, cy - patch.h / 2);
@@ -371,6 +411,17 @@ function logoHelligkeit(layer: Raster): number {
 const RING_ANTEIL = 0.3;
 
 /**
+ * Wie tief die Ringe in der Mitte durchhaengen, als Anteil der halben
+ * Schaftbreite.
+ *
+ * Ein Ring um einen Zylinder ist im Bild kein Strich, sondern eine Ellipse.
+ * Die Kamera steht ueber der Bundkante - man sieht in die Oeffnung hinein -,
+ * also ist von jedem Ring die vordere Haelfte zu sehen, und die haengt zur
+ * Mitte hin durch. Gerade gezogen sieht der Ring aufgemalt aus.
+ */
+const RING_BOGEN = 0.12;
+
+/**
  * Neigung des Schafts im Bereich des Bundes.
  *
  * Die Ringe liegen um einen Zylinder, und der steht im Foto schraeg. Waagrecht
@@ -383,20 +434,22 @@ const RING_ANTEIL = 0.3;
  * wird und die Socke anders im Bild steht.
  *
  * Rueckgabe: m ist die Verschiebung der Mitte je Bildzeile nach unten, xc die
- * Mitte selbst.
+ * Mitte auf Hoehe yc, halbBreite die halbe Breite des Schafts. Die beiden
+ * letzten braucht die Woelbung der Ringe.
  */
 function schaftNeigung(
   w: number,
   h: number,
   band: { from: number; to: number },
   silhouette: Uint8Array,
-): { m: number; xc: number } {
+): { m: number; xc: number; yc: number; halbBreite: number } {
   // Etwas ueber und unter dem Band mitmessen: ein paar Zeilen mehr machen die
   // Gerade ruhiger, ohne in den Fuss zu geraten.
   const von = Math.max(0, Math.floor((band.from - 0.03) * h));
   const bis = Math.min(h - 1, Math.ceil((band.to + 0.03) * h));
   const ys: number[] = [];
   const xs: number[] = [];
+  const breiten: number[] = [];
 
   for (let y = von; y <= bis; y++) {
     let links = -1;
@@ -411,10 +464,11 @@ function schaftNeigung(
     if (links < 0 || rechts - links < w * 0.05) continue;
     ys.push(y);
     xs.push((links + rechts) / 2);
+    breiten.push((rechts - links) / 2);
   }
 
   const n = ys.length;
-  if (n < 8) return { m: 0, xc: w / 2 };
+  if (n < 8) return { m: 0, xc: w / 2, yc: h / 2, halbBreite: w / 4 };
 
   const mitteY = ys.reduce((a, b) => a + b, 0) / n;
   const mitteX = xs.reduce((a, b) => a + b, 0) / n;
@@ -427,7 +481,12 @@ function schaftNeigung(
   const m = nenner === 0 ? 0 : zaehler / nenner;
   // Mehr als das waere keine Neigung mehr, sondern ein Messfehler - etwa,
   // wenn die Freistellung im Bundbereich ausgefranst ist.
-  return { m: Math.max(-0.6, Math.min(0.6, m)), xc: mitteX };
+  return {
+    m: Math.max(-0.6, Math.min(0.6, m)),
+    xc: mitteX,
+    yc: mitteY,
+    halbBreite: breiten.reduce((a, b) => a + b, 0) / n,
+  };
 }
 
 /**
@@ -458,19 +517,23 @@ function bandMask(
   // Die weiche Kante richtet sich nach dem Ring, nicht nach dem ganzen Band -
   // sonst waere sie bei diesen schmalen Streifen breiter als der Streifen.
   const feather = Math.max(1, dicke * 0.18);
-  const { m, xc } = schaftNeigung(w, h, band, silhouette);
+  const { m, xc, yc, halbBreite } = schaftNeigung(w, h, band, silhouette);
+  const bogen = RING_BOGEN * halbBreite;
 
   for (const ring of ringe) {
-    // Der Suchbereich waechst um das, was die Neigung ueber die Bildbreite
-    // ausmacht - sonst fehlte der Ring an den Raendern.
-    const spielraum = Math.abs(m) * w;
+    // Der Suchbereich waechst um das, was Neigung und Woelbung ueber die
+    // Bildbreite ausmachen - sonst fehlte der Ring an den Raendern.
+    const spielraum = Math.abs(m) * w + bogen;
     const erste = Math.max(0, Math.floor(ring.von - spielraum));
     const letzte = Math.min(h - 1, Math.ceil(ring.bis + spielraum));
     for (let y = erste; y <= letzte; y++) {
+      // Die Mitte wandert mit der Hoehe, der Schaft steht schraeg.
+      const mitteHier = xc + m * (y - yc);
       for (let x = 0; x < w; x++) {
         const i = y * w + x;
         if (silhouette[i]! === 0) continue;
-        const u = y + m * (x - xc);
+        const t = Math.max(-1, Math.min(1, (x - mitteHier) / halbBreite));
+        const u = y + m * (x - xc) - bogen * (1 - t * t);
         if (u < ring.von || u > ring.bis) continue;
         const rand = Math.min(u - ring.von, ring.bis - u);
         const v = Math.round(Math.min(1, rand / feather) * 255);
@@ -513,7 +576,16 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
   // 2 - Alten Schriftzug ausmessen und uebermalen. Traegt das Foto keinen,
   // entfaellt beides: zu messen gaebe es nur die Struktur der Ware.
   const labelColor = sampleLabelColor(product, base);
-  let printBox = nameBox(product, width, height);
+  // Mitte der Ware auf Hoehe von Logo und Schriftzug. Nur fuer Ware mit
+  // Bund - auf dem Muetzenlabel gibt die Webmarke die Stelle vor.
+  const mitteLogo = product.band
+    ? mitteDerWare(silhouette, width, height, product.logo.y)
+    : null;
+  const mitteName = product.band
+    ? mitteDerWare(silhouette, width, height, product.name.y)
+    : null;
+
+  let printBox = nameBox(product, width, height, mitteName);
   if (product.hasPrintedName !== false) {
     printBox = measureExistingPrint(product, base, labelColor);
     const patch = await labelPatch(product, base, labelColor, printBox);
@@ -553,7 +625,14 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
   const logoTakesLabel = Boolean(logo && product.logoOnLabel);
 
   if (logo) {
-    const placed = await logoLayer(product, width, height, logo, logoTakesLabel ? printBox : null);
+    const placed = await logoLayer(
+      product,
+      width,
+      height,
+      logo,
+      logoTakesLabel ? printBox : null,
+      mitteLogo,
+    );
     if (placed) {
       // Auf der Ware behaelt das Logo seine eigenen Farben. Umgefaerbt wird nur,
       // wenn es sonst im Untergrund verschwaende:
