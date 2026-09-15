@@ -1,6 +1,6 @@
 # Occulto Merch-Konfigurator
 
-> Betrieb, Konten und Wartung: siehe  und 
+> Betrieb, Konten und Wartung: siehe `UEBERGABE.md` und `ANLEITUNG-ONLINE.md`
 > im Theme-Repository.
 
 Next.js 16 (App Router), betrieben bei Netlify. Der Besucher gibt eine Firmendomain ein, der Server
