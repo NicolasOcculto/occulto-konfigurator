@@ -302,12 +302,30 @@ async function logoLayer(
       .raw()
       .toBuffer({ resolveWithObject: true });
 
-    const patch: Raster = { data, w: info.width, h: info.height };
+    let patch: Raster = { data, w: info.width, h: info.height };
 
     // Viele Logos von Websites sind deckende Grafiken auf weissem Grund. Ohne
     // Freistellung waere die Silhouette das ganze Rechteck - auf dunkler Ware
     // entstand daraus ein weisser Kasten statt eines Logos.
     floodFillBackground(patch);
+
+    // Die Ware steht im Foto schraeg. Waagrecht aufgesetzt sieht das Logo
+    // aufgeklebt aus statt eingestrickt - es bekommt dieselbe Neigung wie der
+    // Schriftzug. Auf dem Muetzenlabel (box gesetzt) bleibt es gerade: dort
+    // liegt eine flache Webmarke, keine gewoelbte Flaeche.
+    const neigung = box ? 0 : product.name.a;
+    if (neigung !== 0) {
+      // Erst freistellen, dann drehen: die Freistellung erkennt einen weissen
+      // Grund nur, solange er noch deckend ist. Nach dem Drehen waeren die
+      // Ecken durchsichtig und sie hielte das Bild fuer bereits freigestellt.
+      const gedreht = await sharp(Buffer.from(patch.data), {
+        raw: { width: patch.w, height: patch.h, channels: 4 },
+      })
+        .rotate(neigung, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      patch = { data: gedreht.data, w: gedreht.info.width, h: gedreht.info.height };
+    }
 
     const cx = box ? box.cx : product.logo.x * w;
     const cy = box ? box.cy : product.logo.y * h;
@@ -551,7 +569,9 @@ export async function renderMockup(options: RenderOptions): Promise<Buffer> {
     }
   }
 
-  if (company && !logoTakesLabel) {
+  // Der Firmenname ist der Rueckfall, nicht die Ergaenzung: liegt ein Logo auf
+  // der Ware, stand der Name bisher ein zweites Mal darunter.
+  if (company && !hasArtwork) {
     // Das Muetzenlabel ist immer hell, dort steht der Name dunkel.
     const inkIsDark = product.dark ? true : lightGarment;
     const text = await nameLayer(
