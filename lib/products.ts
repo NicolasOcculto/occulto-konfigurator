@@ -172,9 +172,9 @@ export const ANFRAGE_KATEGORIEN = [
     vorschau: '/products/vorschau/tennis.webp',
   },
   {
-    key: 'sneaker',
-    label: 'Sneakersocken',
-    unterzeile: 'Unsichtbar im Schuh',
+    key: 'casual',
+    label: 'Casual Socken',
+    unterzeile: 'Der Klassiker',
     vorschau: '/products/vorschau/sneaker.webp',
   },
   {
@@ -196,7 +196,9 @@ export type AnfrageKategorie = (typeof ANFRAGE_KATEGORIEN)[number];
 /** Was der Konfigurator zeigt, auf die Kategorie des Formulars uebersetzt. */
 const KATEGORIE_JE_VORLAGE: Record<string, string> = {
   tennis: 'tennis',
-  sneaker: 'sneaker',
+  // Der Konfigurator kennt die Sneakersocke, das Formular fasst sie unter
+  // Casual: es hat vier Kategorien, der Shop sieben Artikel.
+  sneaker: 'casual',
   skisocke: 'spezial',
   muetze: 'textil',
 };
