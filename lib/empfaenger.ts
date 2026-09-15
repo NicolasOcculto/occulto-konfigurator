@@ -10,7 +10,7 @@
  * Postfach eines Mitarbeiters, verschwinden sonst die Anfragen mit - und zwar
  * lautlos, weil der Besucher trotzdem die Danke-Seite sieht. Siehe UEBERGABE.md.
  */
-const RUECKFALL = 'support@occulto.de';
+const RUECKFALL = 'b2b@occulto.de';
 
 export function empfaengerAus(wert: string | undefined): string[] {
   const liste = (wert ?? '')
