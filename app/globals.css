@@ -118,11 +118,19 @@ input {
   text-wrap: balance;
 }
 
-/* Die zweite Zeile leichter: die erste ist die Ansage, die zweite die
-   Antwort darauf. Ein eigener Block, damit sie immer umbricht. */
+/* Die zweite Zeile ist keine zweite Ueberschrift, sondern die Aufforderung
+   darunter - leichter und kleiner.
+
+   Die Groesse ist gemessen, nicht gegriffen: bei voller Ueberschriftgroesse
+   passen in die Spalte rund 18 Zeichen, der Satz hat 33 und braeche um. Bei
+   0.52 passt er in eine Zeile, und der ganze Block wird dadurch niedriger als
+   mit einer zweizeiligen Ueberschrift. */
 .b2b-konfig__titel span {
   display: block;
+  margin-top: 6px;
+  font-size: 0.52em;
   font-weight: 400;
+  line-height: 1.2;
 }
 
 /* Zwei Absaetze: der erste sagt, wer das Design macht, der zweite, wofuer

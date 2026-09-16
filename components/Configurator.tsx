@@ -285,7 +285,7 @@ export default function Configurator({
               gerade gewonnen hat. */}
           <Ueberschrift className="b2b-konfig__titel">
             Ungeduldig?
-            <span>Platziere dein Logo selbst.</span>
+            <span>Teste dein Logo selbst schon mal!</span>
           </Ueberschrift>
           <div className="b2b-konfig__einleitung">
             {/* Der wichtigste Satz und deshalb immer sichtbar: was der Automat
@@ -293,17 +293,16 @@ export default function Configurator({
                 Sockendesigns. Wer das nicht liest, haelt uns fuer eine
                 Druckerei. */}
             <p className="b2b-konfig__text">
-              Wir drucken nicht nur Logos auf Socken. Komplette Sockendesigns erarbeiten
-              unsere Grafiker gemeinsam mit dir – in mehreren Runden, kostenlos und
-              unverbindlich.
+              Wir drucken natürlich nicht nur Logos auf Socken. Komplette Sockendesigns
+              erarbeiten unsere Grafiker gemeinsam mit dir – kostenlos und unverbindlich.
             </p>
             {/* Faellt weg, sobald ein Logo da ist. Dann steht rechts ein Bild, das
                 mehr ueber unser Koennen sagt als der Satz - und die linke Spalte
                 wird sonst laenger als die Ansicht daneben. */}
             {!logo && (
               <p className="b2b-konfig__text">
-                Mal wird daraus eine schlichte Logosocke, mal ein Motiv über die ganze
-                Socke. Beides können wir.
+                Mal wird daraus eine schlichte Logosocke, mal ein komplettes Sockendesign.
+                Beides ist mehr als eine Standardsocke.
               </p>
             )}
           </div>
