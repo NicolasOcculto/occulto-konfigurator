@@ -275,27 +275,30 @@ export default function Configurator({
           {/* Eingebettet ist die Seite schon mit einer h1 versorgt, hier gehoert
               dann eine h2 hin. */}
           <p className="b2b-konfig__label">Konfigurator</p>
-          {/* Zwei Zeilen mit unterschiedlichem Gewicht: die erste ist die
-              Ansage, die zweite die Antwort darauf. Sie sagt bewusst, dass das
-              Design von uns kommt - was der Konfigurator zeigt, ist ein
-              Automat und soll nicht fuer den Entwurf gehalten werden. */}
+          {/* Zwei Zeilen mit unterschiedlichem Gewicht: die erste holt den ab,
+              der hier landet - wer den Konfigurator sucht, will nicht warten,
+              bis sich jemand meldet. Die zweite sagt, was er tun kann.
+
+              Dass das Ergebnis nur ein Vorgeschmack ist, steht im Absatz
+              darunter und noch einmal als Vorbehalt am gerechneten Bild. In der
+              Ueberschrift waere es eine Absage an genau den Besucher, den sie
+              gerade gewonnen hat. */}
           <Ueberschrift className="b2b-konfig__titel">
-            Das echte Design
-            <span>kommt von uns.</span>
+            Ungeduldig?
+            <span>Platziere dein Logo selbst.</span>
           </Ueberschrift>
           <div className="b2b-konfig__einleitung">
             <p className="b2b-konfig__text">
-              Unsere Grafikabteilung entwirft für euch ein Design – kostenlos und
-              unverbindlich. Von der schlichten Logosocke bis zum aufwendigen Muster:
-              wir können alles.
+              Den Feinschliff übernehmen wir: das finale Design bekommst du von unserer
+              Grafikabteilung – kostenlos und unverbindlich.
             </p>
-            {/* Die Einladung faellt weg, sobald ein Logo da ist: sie fordert zu
-                etwas auf, das gerade passiert. Die linke Spalte wird dann
-                ausserdem laenger als die Ansicht daneben. */}
+            {/* Faellt weg, sobald ein Logo da ist. Dann steht rechts ein Bild, das
+                mehr ueber unser Koennen sagt als der Satz - und die linke Spalte
+                wird sonst laenger als die Ansicht daneben. */}
             {!logo && (
               <p className="b2b-konfig__text">
-                Und wenn ihr ungeduldig seid und schon mal sehen wollt, wie euer Logo auf
-                einer Socke aussieht – probiert den Konfigurator.
+                Von der schlichten Logosocke bis zum aufwendigen Muster – wir können mehr
+                als eine Standardsocke.
               </p>
             )}
           </div>
@@ -545,7 +548,7 @@ export default function Configurator({
           {gezeigt && previews[gezeigt.key] && (
             <p className="b2b-konfig__vorbehalt">
               Das ist eine automatische Vorschau, kein fertiges Design – unverbindlich und
-              nur zur Inspiration. Euer echtes Design macht unsere Grafikabteilung, und die
+              nur zur Inspiration. Dein echtes Design macht unsere Grafikabteilung, und die
               macht es deutlich besser.
             </p>
           )}
