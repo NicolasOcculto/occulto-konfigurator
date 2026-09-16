@@ -293,8 +293,9 @@ export default function Configurator({
                 Sockendesigns. Wer das nicht liest, haelt uns fuer eine
                 Druckerei. */}
             <p className="b2b-konfig__text">
-              Wir drucken natürlich nicht nur Logos auf Socken. Komplette Sockendesigns
-              erarbeiten unsere Grafiker gemeinsam mit dir – kostenlos und unverbindlich.
+              Wir produzieren natürlich nicht nur Socken mit Logos! Unsere Grafiker
+              erarbeiten gemeinsam mit dir komplette Sockendesigns – kostenlos und
+              unverbindlich.
             </p>
             {/* Faellt weg, sobald ein Logo da ist. Dann steht rechts ein Bild, das
                 mehr ueber unser Koennen sagt als der Satz - und die linke Spalte
@@ -397,14 +398,14 @@ export default function Configurator({
 
           {hasResult && (
             <div className="b2b-konfig__farben">
-              <h2 className="b2b-konfig__farbtitel">Akzentfarbe</h2>
+              <h2 className="b2b-konfig__farbtitel">Lust auf Streifen? Wähle deine Farbe</h2>
               <div className="b2b-konfig__tupfer">
                 {palette.map((color) => (
                   <button
                     key={color}
                     type="button"
                     title={color}
-                    aria-label={`Akzentfarbe ${color}`}
+                    aria-label={`Streifenfarbe ${color}`}
                     aria-pressed={color.toUpperCase() === tint.toUpperCase()}
                     style={{ background: color }}
                     onClick={() => setTint(color)}
@@ -418,10 +419,6 @@ export default function Configurator({
                   onChange={(e) => setTint(e.target.value)}
                 />
               </div>
-              <p className="b2b-konfig__farbnote">
-                Die Farbe färbt die beiden Ringe am Bund, nicht die ganze Socke. Dunkle Ware
-                bleibt dunkel — dort sitzt dein Logo im eingewebten Label.
-              </p>
             </div>
           )}
 
@@ -445,9 +442,9 @@ export default function Configurator({
                 className="b2b-konfig__mehr"
                 href={`${shop}/products/${gezeigt.shopHandle}?view=b2b-produkt`}
                 target="_top"
-                title={`Details zur ${gezeigt.label}`}
+                title={`Produktdetails zur ${gezeigt.label}`}
               >
-                Details
+                Produktdetails
               </a>
             )}
           </div>
@@ -551,9 +548,8 @@ export default function Configurator({
               Vorher nicht: das Musterfoto behauptet nichts. */}
           {gezeigt && previews[gezeigt.key] && (
             <p className="b2b-konfig__vorbehalt">
-              Das ist eine automatische Vorschau, kein fertiges Design – unverbindlich und
-              nur zur Inspiration. Dein echtes Design macht unsere Grafikabteilung, und die
-              macht es deutlich besser.
+              <strong>Dein finales Design</strong> entwerfen unsere Grafiker gemeinsam mit
+              dir. Das hier ist nur eine automatische Vorschau.
             </p>
           )}
 

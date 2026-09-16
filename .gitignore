@@ -9,3 +9,7 @@ next-env.d.ts
 
 # Von scripts/mailvorschau.mjs erzeugt, nur zum Ansehen.
 mailvorschau.html
+
+# Quell-PDFs der Kundenprojekte: die Screenshots daraus liegen im Theme,
+# das Dokument selbst gehoert nicht in ein oeffentlich ausgeliefertes public/.
+public/products/*.pdf

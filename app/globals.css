@@ -650,10 +650,12 @@ input {
   padding: 10px 13px;
   border-left: 3px solid rgb(var(--akzent));
   border-radius: 0 8px 8px 0;
-  background: rgb(var(--linie) / 0.3);
+  background: rgb(var(--akzent) / 0.06);
   font-size: 13px;
   line-height: 1.45;
-  color: rgb(var(--text-color) / 0.72);
+  /* In der Akzentfarbe: das ist die wichtigste Einschraenkung auf der
+     Seite - wer sie ueberliest, haelt das Automatenbild fuer den Entwurf. */
+  color: rgb(var(--akzent));
 }
 
 .b2b-konfig__bildtitel {

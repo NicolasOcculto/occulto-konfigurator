@@ -368,8 +368,7 @@ export default function Anfrage({
         {/* ---------- Schritt 1 ---------- */}
         <div className={stufe(1)}>
           <p className="b2b-form__hinweis">
-            Die Wahl legt nichts fest. Noch unentschieden? Wir beraten dich zum passenden
-            Modell.
+            Noch unentschieden? Wir beraten dich zum passenden Produkt.
           </p>
           <div className="b2b-form__kacheln">
             {kategorien.map((p) => (
