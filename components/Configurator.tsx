@@ -288,17 +288,22 @@ export default function Configurator({
             <span>Platziere dein Logo selbst.</span>
           </Ueberschrift>
           <div className="b2b-konfig__einleitung">
+            {/* Der wichtigste Satz und deshalb immer sichtbar: was der Automat
+                hier macht, ist Logo auf Socke - das Geschaeft sind aber ganze
+                Sockendesigns. Wer das nicht liest, haelt uns fuer eine
+                Druckerei. */}
             <p className="b2b-konfig__text">
-              Den Feinschliff übernehmen wir: das finale Design bekommst du von unserer
-              Grafikabteilung – kostenlos und unverbindlich.
+              Wir drucken nicht nur Logos auf Socken. Komplette Sockendesigns erarbeiten
+              unsere Grafiker gemeinsam mit dir – in mehreren Runden, kostenlos und
+              unverbindlich.
             </p>
             {/* Faellt weg, sobald ein Logo da ist. Dann steht rechts ein Bild, das
                 mehr ueber unser Koennen sagt als der Satz - und die linke Spalte
                 wird sonst laenger als die Ansicht daneben. */}
             {!logo && (
               <p className="b2b-konfig__text">
-                Von der schlichten Logosocke bis zum aufwendigen Muster – wir können mehr
-                als eine Standardsocke.
+                Mal wird daraus eine schlichte Logosocke, mal ein Motiv über die ganze
+                Socke. Beides können wir.
               </p>
             )}
           </div>
