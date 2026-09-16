@@ -137,7 +137,7 @@ export const PRODUCTS: Product[] = [
     logo: { x: 0.505, y: 0.365, s: 0.15, dx: 0.008 },
     band: { from: 0.245, to: 0.315 },
     name: { x: 0.545, y: 0.455, a: -17, len: 0.15, th: 0.024 },
-    shopHandle: 'sneakersocken',
+    shopHandle: 'casual-socken',
     priceFrom: null,
     minQuantity: 100,
     unit: 'Paar',
