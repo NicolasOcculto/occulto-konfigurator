@@ -194,7 +194,10 @@ export default function Anfrage({
     const naechster = (schritt === 3 ? 3 : schritt + 1) as Schritt;
     setSchritt(naechster);
     setWeiteste((w) => (naechster > w ? naechster : w));
-    spur('b2b_anfrage_schritt', { schritt: naechster });
+    // String, nicht Zahl: GA4 kann nur Text als Dimension aufschluesseln.
+    // Als Zahl waere daraus ein Messwert geworden, der die Schrittnummern
+    // aufsummiert - eine Zahl ohne jede Bedeutung.
+    spur('b2b_anfrage_schritt', { schritt: String(naechster) });
     kopf.current?.scrollIntoView({ block: 'nearest' });
   }
 
