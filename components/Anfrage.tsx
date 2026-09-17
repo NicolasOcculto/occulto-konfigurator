@@ -56,6 +56,8 @@ const BELEGE = [
 
 type Schritt = 1 | 2 | 3;
 
+import { spur } from '@/lib/spur';
+
 /** Nachricht an die einbettende Seite. Kein Nutzerinhalt, nur Steuerdaten. */
 function melde(was: 'hoehe' | 'gesendet' | 'frage-marke', hoehe?: number) {
   if (typeof window === 'undefined' || window.parent === window) return;
@@ -192,6 +194,7 @@ export default function Anfrage({
     const naechster = (schritt === 3 ? 3 : schritt + 1) as Schritt;
     setSchritt(naechster);
     setWeiteste((w) => (naechster > w ? naechster : w));
+    spur('b2b_anfrage_schritt', { schritt: naechster });
     kopf.current?.scrollIntoView({ block: 'nearest' });
   }
 
@@ -238,10 +241,12 @@ export default function Anfrage({
       if (!antwort.ok) throw new Error(daten.error ?? 'Die Anfrage kam nicht durch.');
 
       setGesendet(true);
+      spur('b2b_anfrage_abgeschickt', { produkt: produkt || 'ohne' });
       // Eingebettet leitet die Seite weiter, nicht der Rahmen: b2b_anfrage_success
       // haengt am Seitenaufruf der Danke-Seite.
       melde('gesendet');
     } catch (err) {
+      spur('b2b_anfrage_fehler');
       meldung(err instanceof Error ? err.message : 'Die Anfrage kam nicht durch.', true);
     } finally {
       setSendet(false);
