@@ -94,6 +94,7 @@ export default function Configurator({
      schmal startet auf false, also wie am Schreibtisch: serverseitig gibt es
      kein Fenster, und eine Serverfassung, die von der Browserfassung
      abweicht, wirft React aus dem Tritt. Korrigiert wird gleich danach. */
+  const sondeRef = useRef<HTMLSpanElement>(null);
   const [schmal, setSchmal] = useState(false);
   const [aufgeklappt, setAufgeklappt] = useState(false);
   const zu = schmal && !aufgeklappt;
@@ -198,11 +199,15 @@ export default function Configurator({
      trifft immer den Zustand, der wirklich gerendert wird, und korrigiert
      sich selbst, wenn sich die Breite spaeter noch aendert. */
   useLayoutEffektSicher(() => {
-    const ziel = document.documentElement;
-    const messen = () => setSchmal(ziel.clientWidth <= 899);
+    const sonde = sondeRef.current;
+    if (!sonde) return;
+    // Die Sonde steht unter der Medienabfrage auf display: block. Gelesen wird
+    // also die Entscheidung des CSS selbst - damit koennen Aussehen und
+    // Verhalten nicht auseinanderlaufen.
+    const messen = () => setSchmal(getComputedStyle(sonde).display !== 'none');
     messen();
     const beobachter = new ResizeObserver(messen);
-    beobachter.observe(ziel);
+    beobachter.observe(document.documentElement);
     return () => beobachter.disconnect();
   }, []);
 
@@ -311,6 +316,7 @@ export default function Configurator({
         className={`b2b-konfig ist-zu${eingebettet ? ' ist-eingebettet' : ''}`}
         id="b2b-konfigurator"
       >
+        <span ref={sondeRef} className="b2b-konfig__sonde" aria-hidden="true" />
         <div className="b2b-konfig__auftakt">
           <p className="b2b-konfig__label">Konfigurator</p>
           <Ueberschrift className="b2b-konfig__titel">
@@ -334,6 +340,7 @@ export default function Configurator({
       className={eingebettet ? 'b2b-konfig ist-eingebettet' : 'b2b-konfig'}
       id="b2b-konfigurator"
     >
+      <span ref={sondeRef} className="b2b-konfig__sonde" aria-hidden="true" />
       <div className="b2b-konfig__raster">
         <div className="b2b-konfig__links">
           {/* Eingebettet ist die Seite schon mit einer h1 versorgt, hier gehoert

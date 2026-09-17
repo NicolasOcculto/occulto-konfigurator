@@ -697,7 +697,21 @@ input {
    hoch, davon 209 Einleitungstext und 131 gestapelte Knoepfe, dazu neun
    anfassbare Elemente. Eingeklappt sind es rund 200 Bildpunkte und eines.
    --------------------------------------------------------------- */
+/* Die Sonde: unsichtbar, aber ihr display verraet der App, ob das CSS gerade
+   im mobilen Layout ist. Im iframe war die Breitenmessung in JavaScript nicht
+   verlaesslich - der Konfigurator stand dort gestapelt und trotzdem
+   ausgeklappt. Ueber die Sonde lesen beide dieselbe Entscheidung. */
+.b2b-konfig__sonde {
+  display: none;
+}
+
 @media screen and (max-width: 899px) {
+  .b2b-konfig__sonde {
+    display: block;
+    width: 0;
+    height: 0;
+  }
+
   .b2b-konfig {
     padding: 1.75rem 20px;
   }
