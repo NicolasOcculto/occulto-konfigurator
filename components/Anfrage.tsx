@@ -197,7 +197,7 @@ export default function Anfrage({
     // String, nicht Zahl: GA4 kann nur Text als Dimension aufschluesseln.
     // Als Zahl waere daraus ein Messwert geworden, der die Schrittnummern
     // aufsummiert - eine Zahl ohne jede Bedeutung.
-    spur('b2b_anfrage_schritt', { schritt: String(naechster) });
+    spur('b2b_anfrage_schritt', { form_step: String(naechster) });
     kopf.current?.scrollIntoView({ block: 'nearest' });
   }
 
@@ -244,7 +244,7 @@ export default function Anfrage({
       if (!antwort.ok) throw new Error(daten.error ?? 'Die Anfrage kam nicht durch.');
 
       setGesendet(true);
-      spur('b2b_anfrage_abgeschickt', { produkt: produkt || 'ohne' });
+      spur('b2b_anfrage_abgeschickt', { product: produkt || 'ohne' });
       // Eingebettet leitet die Seite weiter, nicht der Rahmen: b2b_anfrage_success
       // haengt am Seitenaufruf der Danke-Seite.
       melde('gesendet');

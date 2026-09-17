@@ -136,7 +136,7 @@ export default function Configurator({
         const next: Record<string, string> = {};
         for (const item of data.results) next[item.key] = item.image;
         setPreviews(next);
-        spur('b2b_vorschau_fertig', { produkte: data.results.length });
+        spur('b2b_vorschau_fertig', { rendered_count: data.results.length });
       } catch (err) {
         if (controller.signal.aborted) return;
         say(err instanceof Error ? err.message : 'Die Vorschau kam nicht zurueck.', true);
@@ -241,7 +241,7 @@ export default function Configurator({
       if (data.logo) {
         setLogo(data.logo.dataUri);
         setLogoLabel(`${data.logo.width} × ${data.logo.height} px · ${data.logo.source}`);
-        spur('b2b_logo_geladen', { quelle: 'website' });
+        spur('b2b_logo_geladen', { logo_source: 'website' });
         // Die Markenfarben stehen in der Palette bereit, ausgewaehlt wird aber
         // nichts: Weiss ist die Standardfarbe und bleibt es, bis jemand klickt.
         say(
@@ -276,7 +276,7 @@ export default function Configurator({
       reader.onload = () => {
         setLogo(String(reader.result));
         setLogoLabel(file.name);
-        spur('b2b_logo_geladen', { quelle: 'datei' });
+        spur('b2b_logo_geladen', { logo_source: 'datei' });
         say('');
       };
       reader.onerror = () => say('Die Datei liess sich nicht lesen.', true);
@@ -613,7 +613,7 @@ export default function Configurator({
                 aria-pressed={product.key === aktiv}
                 onClick={() => {
                   spurEinmal('b2b_konfigurator_genutzt');
-                  spur('b2b_produkt_gewechselt', { produkt: product.key });
+                  spur('b2b_produkt_gewechselt', { product: product.key });
                   setAktiv(product.key);
                   setLupe(false);
                 }}
