@@ -1020,6 +1020,22 @@ input {
   visibility: hidden;
 }
 
+/* Auf dem Handy zaehlt nur der Schritt, der gerade dran ist.
+
+   Alle drei liegen in derselben Rasterzelle; mit visibility: hidden nehmen die
+   verborgenen weiter Platz ein, und der Kasten ist so hoch wie der laengste
+   Schritt. Auf Schritt 1 standen dadurch rund 200 Bildpunkte Leere zwischen
+   den Produktkacheln und dem Weiter-Knopf, und die Seite passte mit 888
+   Bildpunkten nicht mehr auf einen Bildschirm.
+
+   Am Schreibtisch bleibt die Stapelung: dort ist Platz genug, und die feste
+   Hoehe haelt den Knopf beim Schrittwechsel an derselben Stelle. */
+@media screen and (max-width: 899px) {
+  .b2b-form__stufeninhalt.ist-verborgen {
+    display: none;
+  }
+}
+
 .b2b-form__hinweis {
   margin: 0 0 18px;
   font-size: 16px;
@@ -1482,9 +1498,33 @@ input {
     padding: 2.5rem 20px;
   }
 
+  /* Kompakter Kopf, damit jeder Schritt auf einen Bildschirm passt.
+
+     Gemessen bei 390 mal 844: Schritt 2 und 3 lagen bei 847 Bildpunkten,
+     also drei ueber dem Schirm - und auf der Landingpage steht darueber noch
+     die Kopfzeile. Der Kopfbereich ist auf allen drei Schritten derselbe,
+     also holt man die Bildpunkte am besten dort.
+
+     Die Schrittleiste stand als drei Saeulen mit Ziffer ueber Text und war
+     dadurch 76 Bildpunkte hoch. Nebeneinander sind es rund 34. */
   .b2b-form__karte {
-    padding: 26px 22px 24px;
+    padding: 18px 18px 20px;
     border-radius: 10px;
+  }
+
+  .b2b-form__titel {
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+  }
+
+  .b2b-form__leiter {
+    margin-bottom: 14px;
+  }
+
+  .b2b-form__stufe {
+    flex-direction: row;
+    justify-content: center;
+    gap: 7px;
   }
 
   .b2b-form__kreis {
