@@ -189,13 +189,21 @@ export default function Configurator({
 
   /* Vor dem Zeichnen, nicht danach: sonst blitzt die volle Fassung kurz auf,
      und weil der Rahmen in der Landingpage der gemeldeten Hoehe folgt,
-     springt dort die halbe Seite. */
+     springt dort die halbe Seite.
+
+     Gemessen wird die eigene Breite, nicht matchMedia. Im iframe steht die
+     Breite beim Einhaengen noch nicht fest: die Medienabfrage meldete dort
+     false, waehrend das CSS laengst im mobilen Layout war - der Konfigurator
+     stand also gestapelt und trotzdem ausgeklappt da. Ein ResizeObserver
+     trifft immer den Zustand, der wirklich gerendert wird, und korrigiert
+     sich selbst, wenn sich die Breite spaeter noch aendert. */
   useLayoutEffektSicher(() => {
-    const abfrage = window.matchMedia('(max-width: 899px)');
-    const folge = () => setSchmal(abfrage.matches);
-    folge();
-    abfrage.addEventListener('change', folge);
-    return () => abfrage.removeEventListener('change', folge);
+    const ziel = document.documentElement;
+    const messen = () => setSchmal(ziel.clientWidth <= 899);
+    messen();
+    const beobachter = new ResizeObserver(messen);
+    beobachter.observe(ziel);
+    return () => beobachter.disconnect();
   }, []);
 
   /* ---------- Markenerkennung ---------- */
