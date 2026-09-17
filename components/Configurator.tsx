@@ -1,6 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+
+/* Auf dem Server gibt es kein Layout, und React warnt bei useLayoutEffect.
+   Die Wahl faellt einmal beim Laden des Moduls und aendert sich danach nie -
+   die Reihenfolge der Hooks bleibt also stabil. */
+const useLayoutEffektSicher = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 import { aufNachfrageAntworten, melden, type Marke } from '@/lib/markenkanal';
 import type { ProductCard } from '@/lib/products';
 
@@ -79,6 +84,19 @@ export default function Configurator({
   // Zoompunkt in Prozent der Buehne. transform-origin rechnet auf die Randbox,
   // deshalb stimmt der Punkt auch bei object-fit: contain.
   const [lupenPunkt, setLupenPunkt] = useState({ x: 50, y: 50 });
+
+  /* Auf dem Handy startet der Konfigurator eingeklappt.
+
+     Ausgeklappt ist er dort ueber 1200 Bildpunkte hoch - nachgemessen bei
+     390 Bildpunkten Breite. Wer nur scrollt, hat damit anderthalb
+     Bildschirmlaengen Formular vor sich, bevor es weitergeht.
+
+     schmal startet auf false, also wie am Schreibtisch: serverseitig gibt es
+     kein Fenster, und eine Serverfassung, die von der Browserfassung
+     abweicht, wirft React aus dem Tritt. Korrigiert wird gleich danach. */
+  const [schmal, setSchmal] = useState(false);
+  const [aufgeklappt, setAufgeklappt] = useState(false);
+  const zu = schmal && !aufgeklappt;
 
   const fileInput = useRef<HTMLInputElement>(null);
   const renderAbort = useRef<AbortController | null>(null);
@@ -168,6 +186,17 @@ export default function Configurator({
     beobachter.observe(ziel);
     return () => beobachter.disconnect();
   }, [eingebettet]);
+
+  /* Vor dem Zeichnen, nicht danach: sonst blitzt die volle Fassung kurz auf,
+     und weil der Rahmen in der Landingpage der gemeldeten Hoehe folgt,
+     springt dort die halbe Seite. */
+  useLayoutEffektSicher(() => {
+    const abfrage = window.matchMedia('(max-width: 899px)');
+    const folge = () => setSchmal(abfrage.matches);
+    folge();
+    abfrage.addEventListener('change', folge);
+    return () => abfrage.removeEventListener('change', folge);
+  }, []);
 
   /* ---------- Markenerkennung ---------- */
 
@@ -263,6 +292,33 @@ export default function Configurator({
       x: Math.min(100, Math.max(0, ((event.clientX - r.left) / r.width) * 100)),
       y: Math.min(100, Math.max(0, ((event.clientY - r.top) / r.height) * 100)),
     };
+  }
+
+  /* Eingeklappt: Label, Ueberschrift, ein Knopf. Mehr braucht es nicht, um
+     zu zeigen, was hier liegt - und es ist genau ein anfassbares Element
+     statt der neun der vollen Fassung. */
+  if (zu) {
+    return (
+      <section
+        className={`b2b-konfig ist-zu${eingebettet ? ' ist-eingebettet' : ''}`}
+        id="b2b-konfigurator"
+      >
+        <div className="b2b-konfig__auftakt">
+          <p className="b2b-konfig__label">Konfigurator</p>
+          <Ueberschrift className="b2b-konfig__titel">
+            Ungeduldig?
+            <span>Teste dein Logo selbst schon mal!</span>
+          </Ueberschrift>
+          <button
+            type="button"
+            className="b2b-konfig__cta"
+            onClick={() => setAufgeklappt(true)}
+          >
+            Logo testen
+          </button>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -440,7 +496,7 @@ export default function Configurator({
               // die Produktseite in den Rahmen des Konfigurators laden.
               <a
                 className="b2b-konfig__mehr"
-                href={`${shop}/products/${gezeigt.shopHandle}?view=b2b-produkt`}
+                href={`${shop}/products/${gezeigt.shopHandle}`}
                 target="_top"
                 title={`Produktdetails zur ${gezeigt.label}`}
               >
@@ -463,6 +519,11 @@ export default function Configurator({
               <button
                 type="button"
                 className={lupe ? 'b2b-konfig__glas ist-gezoomt' : 'b2b-konfig__glas'}
+                /* Auf dem Handy abgeschaltet. Die Lupe haengt an onMouseMove und
+                   onMouseLeave - Mausereignisse, die es dort nicht gibt. Ein Tipp
+                   schaltet sie zwar ein, aber weder schwenken noch verlassen
+                   funktioniert, und man sitzt im Zoom fest. */
+                disabled={schmal}
                 aria-label={
                   lupe ? `${gezeigt.label} wieder verkleinern` : `${gezeigt.label} vergrößern`
                 }

@@ -690,14 +690,75 @@ input {
   opacity: 0.55;
 }
 
+/* ---------------------------------------------------------------
+   Handy. Am Schreibtisch aendert sich hier nichts.
+
+   Ausgangslage, nachgemessen bei 390 Bildpunkten Breite: 1213 Bildpunkte
+   hoch, davon 209 Einleitungstext und 131 gestapelte Knoepfe, dazu neun
+   anfassbare Elemente. Eingeklappt sind es rund 200 Bildpunkte und eines.
+   --------------------------------------------------------------- */
 @media screen and (max-width: 899px) {
   .b2b-konfig {
-    padding: 2.5rem 20px;
+    padding: 1.75rem 20px;
   }
 
   .b2b-konfig__raster {
     grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 22px;
+  }
+
+  /* Der eingeklappte Zustand. */
+  .b2b-konfig__auftakt {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .b2b-konfig.ist-zu .b2b-konfig__titel {
+    margin: 0;
+  }
+
+  /* Knoepfe eine Nummer kleiner. 46 Bildpunkte bleiben ueber der
+     Daumenmarke von 44, unter der man nicht mehr sicher trifft. */
+  .b2b-konfig__cta,
+  .b2b-konfig__mehr,
+  .b2b-konfig__drop {
+    min-height: 46px;
+    padding: 12px 22px;
+    font-size: 15px;
+  }
+  .b2b-konfig__pfeil {
+    width: 44px;
+    min-height: 44px;
+    font-size: 19px;
+  }
+
+  /* Weniger Luft zwischen den Bloecken. */
+  .b2b-konfig__label {
+    margin-bottom: 10px;
+  }
+  .b2b-konfig__titel {
+    margin-bottom: 16px;
+  }
+  .b2b-konfig__einleitung {
+    margin-bottom: 20px;
+  }
+  .b2b-konfig__einleitung .b2b-konfig__text {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .b2b-konfig__knoepfe {
+    margin-top: 18px;
+    gap: 8px;
+  }
+
+  /* Die Lupe ist hier abgeschaltet - dann soll auch ihr Zeichen weg und
+     nichts mehr auf Beruehrung reagieren. */
+  .b2b-konfig__glas:disabled {
+    cursor: default;
+  }
+  .b2b-konfig__glas:disabled .b2b-konfig__lupe {
+    display: none;
   }
 }
 
