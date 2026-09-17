@@ -407,11 +407,14 @@ function logoHelligkeit(layer: Raster): number {
  *
  * Die Ringe sitzen an den beiden Raendern des gemessenen Bandes: aussen und
  * innen bleibt damit alles, wie es an der echten Ware gemessen wurde, nur die
- * Mitte dazwischen behaelt die Grundfarbe. Zwei mal 0.3 laesst 0.4 Zwischenraum
- * - er ist breiter als die Ringe selbst, sonst laufen sie optisch wieder zu
- * einem Band zusammen.
+ * Mitte dazwischen behaelt die Grundfarbe.
+ *
+ * Ein Drittel, nicht 0.3: damit ist der Zwischenraum genau so dick wie ein
+ * Ring. Zwei Ringe und eine Luecke teilen sich das Band zu gleichen Teilen -
+ * jede andere Zahl macht eines von beidem zum Zufall. Vorher lagen 0.3 zu
+ * 0.4, die Luecke war also breiter als die Streifen.
  */
-const RING_ANTEIL = 0.3;
+const RING_ANTEIL = 1 / 3;
 
 /**
  * Wie tief die Ringe in der Mitte durchhaengen, als Anteil der halben
@@ -544,7 +547,12 @@ function bandMask(
   ];
   // Die weiche Kante richtet sich nach dem Ring, nicht nach dem ganzen Band -
   // sonst waere sie bei diesen schmalen Streifen breiter als der Streifen.
-  const feather = Math.max(1, dicke * 0.18);
+  //
+  // 0.1 statt 0.18: die Kante liegt innerhalb des Rings, frisst ihn also von
+  // beiden Seiten an, waehrend die Luecke dabei waechst. Bei 0.18 waren die
+  // Ringe zwar rechnerisch so dick wie der Zwischenraum, sichtbar aber im
+  // Verhaeltnis 24 zu 31. Weich genug bleibt es trotzdem.
+  const feather = Math.max(1, dicke * 0.1);
   const { m, xc, yc, halbBreite } = neigungDerWare(product, w, h, silhouette)!;
   const bogen = (product.bandBow ?? RING_BOGEN) * halbBreite;
 
