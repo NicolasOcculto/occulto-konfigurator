@@ -21,3 +21,26 @@ export function spur(name: string, daten: Record<string, string | number> = {}):
     /* Messung darf nie etwas kaputtmachen. */
   }
 }
+
+/**
+ * Wie spur(), aber hoechstens einmal je Sitzung.
+ *
+ * Fuer Kennzahlen wie "Konfigurator genutzt" oder "Formular angefangen":
+ * dort zaehlt, wie viele Leute es angefasst haben, nicht wie oft jemand
+ * geklickt hat. Ohne die Bremse wuerde ein einzelner Besucher, der fuenf
+ * Farben durchprobiert, die Zahl verfuenffachen.
+ *
+ * sessionStorage statt eines Merkers im Bauteil: der Konfigurator wird beim
+ * Aufklappen neu aufgebaut, ein Merker im Zustand waere dann wieder leer.
+ */
+export function spurEinmal(name: string, daten: Record<string, string | number> = {}): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const schluessel = 'occulto-spur-' + name;
+    if (sessionStorage.getItem(schluessel)) return;
+    sessionStorage.setItem(schluessel, '1');
+  } catch {
+    /* Privater Modus: dann lieber mehrfach melden als gar nicht. */
+  }
+  spur(name, daten);
+}

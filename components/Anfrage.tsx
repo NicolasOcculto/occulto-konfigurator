@@ -56,7 +56,7 @@ const BELEGE = [
 
 type Schritt = 1 | 2 | 3;
 
-import { spur } from '@/lib/spur';
+import { spur, spurEinmal } from '@/lib/spur';
 
 /** Nachricht an die einbettende Seite. Kein Nutzerinhalt, nur Steuerdaten. */
 function melde(was: 'hoehe' | 'gesendet' | 'frage-marke', hoehe?: number) {
@@ -383,6 +383,7 @@ export default function Anfrage({
                 className={produkt === p.key ? 'b2b-form__kachel ist-gewaehlt' : 'b2b-form__kachel'}
                 aria-pressed={produkt === p.key}
                 onClick={() => {
+                  spurEinmal('b2b_anfrage_gestartet');
                   setProdukt(p.key);
                   meldung('');
                 }}
@@ -407,6 +408,7 @@ export default function Anfrage({
               }
               aria-pressed={produkt === UNENTSCHIEDEN}
               onClick={() => {
+                spurEinmal('b2b_anfrage_gestartet');
                 setProdukt(UNENTSCHIEDEN);
                 meldung('');
               }}

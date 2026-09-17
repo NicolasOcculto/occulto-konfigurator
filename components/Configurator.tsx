@@ -7,7 +7,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
    die Reihenfolge der Hooks bleibt also stabil. */
 const useLayoutEffektSicher = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 import { aufNachfrageAntworten, melden, type Marke } from '@/lib/markenkanal';
-import { spur } from '@/lib/spur';
+import { spur, spurEinmal } from '@/lib/spur';
 import type { ProductCard } from '@/lib/products';
 
 /** Standardpalette, solange die Website keine eigenen Markenfarben hergibt. */
@@ -391,7 +391,10 @@ export default function Configurator({
               <input
                 type="text"
                 value={domain}
-                onChange={(e) => setDomain(e.target.value)}
+                onChange={(e) => {
+                  spurEinmal('b2b_konfigurator_genutzt');
+                  setDomain(e.target.value);
+                }}
                 placeholder="Deine URL"
                 autoComplete="off"
                 spellCheck={false}
@@ -415,7 +418,10 @@ export default function Configurator({
               type="button"
               className={`b2b-konfig__drop${dragging ? ' ist-ueber' : ''}${logo ? ' hat-logo' : ''}`}
               title="PNG mit transparentem Hintergrund passt am besten"
-              onClick={() => fileInput.current?.click()}
+              onClick={() => {
+                spurEinmal('b2b_konfigurator_genutzt');
+                fileInput.current?.click();
+              }}
               onDragOver={(e) => {
                 e.preventDefault();
                 setDragging(true);
@@ -606,6 +612,7 @@ export default function Configurator({
                 }
                 aria-pressed={product.key === aktiv}
                 onClick={() => {
+                  spurEinmal('b2b_konfigurator_genutzt');
                   spur('b2b_produkt_gewechselt', { produkt: product.key });
                   setAktiv(product.key);
                   setLupe(false);
