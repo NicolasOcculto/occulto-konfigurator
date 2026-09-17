@@ -1522,20 +1522,33 @@ input {
   }
 
   .b2b-form__stufe {
-    flex-direction: row;
-    justify-content: center;
-    gap: 7px;
+    gap: 0;
   }
 
+  /* Nur die Ziffern.
+
+     Die Beschriftungen daneben brauchten den meisten Platz, und der zweite
+     Schritt heisst "Design und Menge" - dieser laengere Text quetschte den
+     Kreis daneben zum Oval, weil der schrumpfen durfte. Wie der Schritt
+     heisst, steht ohnehin in der Ueberschrift darunter.
+
+     Fuer Vorleseprogramme bleibt der Name erhalten: er steht im aria-label
+     des Knopfes, nicht nur in diesem span. */
+  .b2b-form__stufenname {
+    display: none;
+  }
+
+  /* flex: 0 0 - damit der Kreis unter keinen Umstaenden gequetscht wird. */
   .b2b-form__kreis {
-    width: 44px;
-    height: 44px;
-    font-size: 18px;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
 
   .b2b-form__leiter::before,
   .b2b-form__stufe.ist-fertig::after {
-    top: 22px;
+    top: 15px;
   }
 
   .b2b-form__knopf {
