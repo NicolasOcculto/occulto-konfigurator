@@ -10,6 +10,8 @@
  * Rasterlayouts. Deshalb eine Tabelle mit Stilen direkt an den Zellen.
  */
 
+import { besuchText, einstieg, kanal, massgeblich, type Herkunft } from "@/lib/herkunft";
+
 export type Anfrage = {
   firma: string;
   person: string;
@@ -21,6 +23,8 @@ export type Anfrage = {
   logoName: string | null;
   nachricht: string;
   ausKonfigurator: boolean;
+  /** Von der Landingpage gesammelt; null, wenn das Formular nicht eingebettet war. */
+  herkunft: Herkunft | null;
 };
 
 /** Zeichen, die in HTML eine Bedeutung haetten. Die Mail baut HTML aus Nutzertext. */
@@ -49,9 +53,21 @@ function zeile(name: string, wert: string, hervor = false): string {
   );
 }
 
-/** Betreff: Firma zuerst, damit die Liste im Postfach lesbar bleibt. */
+/**
+ * Betreff: Firma zuerst, damit die Liste im Postfach lesbar bleibt. Der Kanal
+ * steht am Ende - so laesst sich im Postfach nach "Meta-Anzeige" suchen und
+ * zaehlen, ohne jede Mail zu oeffnen.
+ */
 export function betreff(a: Anfrage): string {
-  return `B2B-Anfrage: ${a.firma} — ${a.produkt}, ${a.mengeText}`;
+  return `B2B-Anfrage: ${a.firma} — ${a.produkt}, ${a.mengeText} · ${kanal(massgeblich(a.herkunft))}`;
+}
+
+/** Die zweite Zeile nur, wenn der erste Besuch etwas anderes sagt als der letzte. */
+function herkunftZeilen(a: Anfrage): [string, string][] {
+  const zeilen: [string, string][] = [["Herkunft", besuchText(massgeblich(a.herkunft))]];
+  const erst = einstieg(a.herkunft);
+  if (erst) zeilen.push(["Erster Besuch", besuchText(erst)]);
+  return zeilen;
 }
 
 export function htmlMail(a: Anfrage): string {
@@ -64,6 +80,7 @@ export function htmlMail(a: Anfrage): string {
     zeile('Menge gesamt', a.mengeText, true),
     zeile('Logo', a.logoName ? `als Anhang: ${a.logoName}` : 'noch keins'),
     zeile('Aus dem Konfigurator', a.ausKonfigurator ? 'ja' : 'nein'),
+    ...herkunftZeilen(a).map(([name, wert]) => zeile(name, wert)),
     zeile('Nachricht', a.nachricht),
   ].join('');
 
@@ -94,6 +111,7 @@ export function textMail(a: Anfrage): string {
     `Menge gesamt:    ${a.mengeText}`,
     `Logo:            ${a.logoName ? `als Anhang: ${a.logoName}` : 'noch keins'}`,
     `Konfigurator:    ${a.ausKonfigurator ? 'ja' : 'nein'}`,
+    ...herkunftZeilen(a).map(([name, wert]) => `${(name + ':').padEnd(17)}${wert}`),
     '',
     'Nachricht:',
     a.nachricht || '—',

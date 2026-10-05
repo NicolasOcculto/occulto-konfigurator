@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { nachfragen, type Marke } from '@/lib/markenkanal';
+import { herkunftErfragen, type Herkunft } from '@/lib/herkunft';
+import { istDatenschutz } from '@/lib/einbettung';
+import { useParameter } from '@/lib/use-parameter';
 import { kategorieAus, type AnfrageKategorie } from '@/lib/products';
 
 const MAX_LOGO_BYTES = 5_000_000;
@@ -73,13 +76,14 @@ export default function Anfrage({
   kategorien,
   eingebettet = false,
   fallbackMail,
-  datenschutz,
+  datenschutz: datenschutzStart,
 }: {
   kategorien: readonly AnfrageKategorie[];
   eingebettet?: boolean;
   fallbackMail: string;
   datenschutz: string;
 }) {
+  const datenschutz = useParameter('datenschutz', istDatenschutz, datenschutzStart);
   const [schritt, setSchritt] = useState<Schritt>(1);
   // Weiter als hierher war der Besucher noch nie - vorwaerts springen darf er
   // deshalb nur bis hier, sonst uebergeht er die Pruefungen dazwischen.
@@ -130,6 +134,10 @@ export default function Anfrage({
   }, []);
 
   useEffect(() => nachfragen(uebernehmen), [uebernehmen]);
+
+  // Woher der Besucher kam, weiss nur die Landingpage. Sie antwortet einmal.
+  const [herkunft, setHerkunft] = useState<Herkunft | null>(null);
+  useEffect(() => herkunftErfragen(setHerkunft), []);
 
   /* ---------- Hoehe melden ---------- */
 
@@ -238,6 +246,7 @@ export default function Anfrage({
           telefon,
           nachricht,
           ausKonfigurator,
+          herkunft,
         }),
       });
       const daten = (await antwort.json()) as { error?: string };

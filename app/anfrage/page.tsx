@@ -1,31 +1,16 @@
 import Anfrage from '@/components/Anfrage';
 import { ANFRAGE_KATEGORIEN } from '@/lib/products';
-import { empfaengerAus } from '@/lib/empfaenger';
+import { istDatenschutz } from '@/lib/einbettung';
+import { ANFRAGE_METADATA, DATENSCHUTZ_FALLBACK, FALLBACK_MAIL } from '@/lib/anfrage-seite';
 
-/** Rueckfallweg, wenn der Versand scheitert. Gleiche Adresse wie der Empfaenger. */
-// Scheitert der Versand, bietet das Formular diese Adresse als Weg an.
-// ANFRAGE_EMPFAENGER kann mehrere enthalten - in einem mailto-Link steht die
-// erste, alles andere waere fuer den Besucher nur verwirrend.
-const FALLBACK_MAIL = empfaengerAus(process.env.ANFRAGE_EMPFAENGER)[0];
+export const metadata = ANFRAGE_METADATA;
 
 /**
- * Die Datenschutzerklaerung liegt im Shop, nicht in dieser App. Ein relativer
- * Link zeigte im iframe auf die App selbst und lief ins Leere. Die
- * einbettende Seite gibt die richtige Adresse als Parameter mit; der Wert
- * hier ist nur der Rueckfall fuer den Aufruf ohne Einbettung.
- */
-const DATENSCHUTZ_FALLBACK = 'https://occulto.de/policies/privacy-policy';
-
-export const metadata = {
-  title: 'Occulto — Anfrage stellen',
-  description: 'Socken mit Logo anfragen: Produkt, Design und Menge in drei Schritten.',
-};
-
-/**
- * `?eingebettet=1` wie beim Konfigurator: kein Aussenabstand, h2 statt h1.
+ * Die eigenstaendige Seite fuer die CTAs der Produktseiten.
  *
- * Zwei Einbauorte teilen sich diese Route - der Abschnitt der Landingpage und
- * die eigenstaendige Seite fuer die CTAs der Produktseiten.
+ * `?eingebettet=1` gilt hier weiter, damit eine Landingpage mit der alten
+ * Adresse im iframe nicht bricht. Neu eingebettet wird unter
+ * /anfrage/eingebettet - die Seite ist vorab gebaut und kommt aus dem Cache.
  */
 export default async function AnfrageSeite({
   searchParams,
@@ -33,20 +18,14 @@ export default async function AnfrageSeite({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-
-  // Nur eigene Adressen zulassen: der Parameter kommt von der einbettenden
-  // Seite, und wer die ist, bestimmt nicht die App. Ein fremdes Ziel hinter
-  // dem Wort Datenschutz waere genau die Art Link, die niemand prueft.
   const roh = typeof params.datenschutz === 'string' ? params.datenschutz : '';
-  const ERLAUBT = /^https:\/\/([a-z0-9-]+\.)*occulto\.de\/[\w/-]*$/i;
-  const datenschutz = ERLAUBT.test(roh) ? roh : DATENSCHUTZ_FALLBACK;
 
   return (
     <Anfrage
       kategorien={ANFRAGE_KATEGORIEN}
       eingebettet={params.eingebettet === '1'}
       fallbackMail={FALLBACK_MAIL}
-      datenschutz={datenschutz}
+      datenschutz={istDatenschutz(roh) ? roh : DATENSCHUTZ_FALLBACK}
     />
   );
 }

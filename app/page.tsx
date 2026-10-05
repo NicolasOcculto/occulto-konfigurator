@@ -7,6 +7,9 @@ import { PRODUCT_CARDS } from '@/lib/products';
  * Im iframe stellt die Landingpage beides selbst: die Ueberschrift gehoert in
  * das Dokument der Seite, sonst taucht sie weder in der Gliederung noch bei
  * Google auf. Der iframe traegt nur den interaktiven Teil.
+ *
+ * Die Landingpage bettet inzwischen /eingebettet ein - vorab gebaut, ohne
+ * Serverfunktion. Diese Fassung bleibt fuer Seiten mit der alten Adresse.
  */
 export default async function Page({
   searchParams,

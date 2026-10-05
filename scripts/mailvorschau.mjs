@@ -11,7 +11,7 @@ import { register } from 'node:module';
 register('data:text/javascript,' +
   encodeURIComponent(`
     export async function resolve(s, c, next) {
-      if (s.startsWith('@/')) return next('../' + s.slice(2), c);
+      if (s.startsWith('@/')) return next('../' + s.slice(2) + (s.endsWith('.ts') ? '' : '.ts'), c);
       return next(s, c);
     }
   `), import.meta.url);
@@ -29,6 +29,10 @@ const beispiel = {
   logoName: 'muster-partner-logo.png',
   nachricht: 'Für unser Sommerfest im Juli. Vereinsfarben blau/weiß, gern mit\nLogo auf dem Schaft.',
   ausKonfigurator: true,
+  herkunft: {
+    erst: { quelle: '', medium: '', kampagne: '', inhalt: '', klick: '', verweis: 'www.google.com', seite: '/', tag: '2026-09-28' },
+    letzt: { quelle: 'meta', medium: 'paid_social', kampagne: 'herbst-2026', inhalt: 'video-2', klick: 'fbclid', verweis: '', seite: '/pages/personalisierte-socken-mit-logo', tag: '2026-10-02' },
+  },
 };
 
 await writeFile('mailvorschau.html', htmlMail(beispiel), 'utf8');

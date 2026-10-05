@@ -3,6 +3,7 @@ import { kategorieLabel } from '@/lib/products';
 import { betreff, htmlMail, textMail, type Anfrage } from '@/lib/anfrage-mail';
 import { clientIp, rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 import { empfaengerAus } from '@/lib/empfaenger';
+import { pruefeHerkunft } from '@/lib/herkunft';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -165,6 +166,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     logoName: anhang ? anhang.filename : null,
     nachricht,
     ausKonfigurator,
+    herkunft: pruefeHerkunft(roh.herkunft),
   };
 
   const schluessel = process.env.RESEND_API_KEY;

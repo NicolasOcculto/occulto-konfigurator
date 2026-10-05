@@ -8,6 +8,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 const useLayoutEffektSicher = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 import { aufNachfrageAntworten, melden, type Marke } from '@/lib/markenkanal';
 import { spur, spurEinmal } from '@/lib/spur';
+import { istShop } from '@/lib/einbettung';
+import { useParameter } from '@/lib/use-parameter';
 import type { ProductCard } from '@/lib/products';
 
 /** Standardpalette, solange die Website keine eigenen Markenfarben hergibt. */
@@ -57,13 +59,14 @@ function melde(was: 'hoehe' | 'anfrage', hoehe?: number) {
 export default function Configurator({
   products,
   eingebettet = false,
-  shop = '',
+  shop: shopStart = '',
 }: {
   products: ProductCard[];
   eingebettet?: boolean;
   /** Adresse des Shops, von der einbettenden Seite durchgereicht. */
   shop?: string;
 }) {
+  const shop = useParameter('shop', istShop, shopStart);
   const [domain, setDomain] = useState('');
   const [company, setCompany] = useState('');
   const [logo, setLogo] = useState<string | null>(null);
